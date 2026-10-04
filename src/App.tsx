@@ -346,6 +346,7 @@ export function App() {
                   if (meta?.challengeId) setActiveChallengeId(meta.challengeId);
                 }}
                 onSelectChallenge={(id) => setActiveChallengeId(id)}
+                onLoadDemoUser={handleLoadDemoUser}
               />
             )}
 

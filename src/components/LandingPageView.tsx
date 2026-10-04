@@ -279,6 +279,167 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         </div>
       </section>
 
+      {/* ================= OFFICIAL ACCREDITATION: BADGES & CERTIFICATES SHOWCASE ================= */}
+      <section id="credentials-preview" className="py-16 md:py-24 bg-[#08090f] border-b border-white/10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          <div className="text-center space-y-3 max-w-3xl mx-auto">
+            <span className="text-xs font-bold font-mono px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30 uppercase tracking-widest">
+              ACCREDITATION & DIGITAL CREDENTIALS
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+              Earn Verified Badges & Accredited Diplomas
+            </h2>
+            <p className="text-sm sm:text-base text-gray-400">
+              Every credential is mathematically anchored to a strict <strong>≥ 80% passing standard</strong> on timed assessments. Featuring ISO scannable QR verification, PNG exports, and zero-crop printable diplomas.
+            </p>
+          </div>
+
+          {/* Certificate Showcase Banner */}
+          <div className="bg-gradient-to-r from-[#121422] via-[#0d0f18] to-[#161324] border-2 border-amber-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-5">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#1e1728] to-[#121424] border-2 border-amber-400/50 flex items-center justify-center text-3xl shadow-xl shrink-0">
+                🏆
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-base sm:text-lg font-bold text-white">Visual Business Engineer Diploma</span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">
+                    Official Credential
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-gray-300">
+                  Awarded upon completing all 5 modules, passing all 5 timer-based exams with ≥ 80%, and completing the 9-Stage Global Retail Capstone.
+                </p>
+                <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 pt-1">
+                  <span className="flex items-center gap-1 text-emerald-400 font-semibold">
+                    <ShieldCheck className="w-4 h-4" /> ISO QR Verification
+                  </span>
+                  <span>•</span>
+                  <span>LinkedIn 1-Click Share</span>
+                  <span>•</span>
+                  <span>High-Res Print PDF</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
+              {onLoadDemoUser && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClick();
+                    onLoadDemoUser();
+                  }}
+                  className="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg transition active:scale-95"
+                >
+                  <Sparkles className="w-4 h-4 text-purple-200" />
+                  <span>🎓 Load Demo User (See All Badges)</span>
+                </button>
+              )}
+              {onNavigateTab && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClick();
+                    onNavigateTab('verify');
+                  }}
+                  className="px-5 py-3 rounded-xl bg-[#141624] hover:bg-white/5 border border-white/10 text-gray-200 font-bold text-xs flex items-center gap-2 transition"
+                >
+                  <span>Verify Credential ID</span>
+                  <ExternalLink className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* 6 Badges Architecture */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Award className="w-5 h-5 text-amber-400" />
+                <span>6 Program Badges Architecture</span>
+              </h3>
+              <span className="text-xs text-amber-400 font-mono">Requires ≥ 80% on Module Mock Exams</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                {
+                  id: 'b1',
+                  mod: 'Module 1',
+                  title: 'Data Preparation Explorer',
+                  icon: '🧹',
+                  desc: 'Mastered spreadsheet anatomy, data cleaning & foundational formulas.',
+                },
+                {
+                  id: 'b2',
+                  mod: 'Module 2',
+                  title: 'Formula Intelligence Specialist',
+                  icon: '🧠',
+                  desc: 'Mastered multi-condition logic, SUMIFS, and What-If scenarios.',
+                },
+                {
+                  id: 'b3',
+                  mod: 'Module 3',
+                  title: 'Lookup & Statistics Analyst',
+                  icon: '🔍',
+                  desc: 'Mastered XLOOKUP, INDEX+MATCH, and statistical distributions.',
+                },
+                {
+                  id: 'b4',
+                  mod: 'Module 4',
+                  title: 'Business Data Visualization Analyst',
+                  icon: '📊',
+                  desc: 'Mastered Pivot Tables, interactive slicers, and storytelling.',
+                },
+                {
+                  id: 'b5',
+                  mod: 'Module 5',
+                  title: 'Dashboard Architect',
+                  icon: '🏛️',
+                  desc: 'Engineered boardroom C-Suite executive control dashboards.',
+                },
+                {
+                  id: 'bf',
+                  mod: 'Grand Final Milestone',
+                  title: 'Visual Business Engineer',
+                  icon: '🏆',
+                  desc: 'The pinnacle award: Solved 9-stage Global Retail Capstone & passed all exams with ≥ 80%.',
+                  isGrand: true,
+                },
+              ].map((b) => (
+                <div
+                  key={b.id}
+                  className={`rounded-2xl p-5 border flex flex-col justify-between ${
+                    b.isGrand
+                      ? 'bg-gradient-to-br from-[#1d1928] to-[#121422] border-amber-400/60 shadow-lg'
+                      : 'bg-[#0e111a] border-white/5'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#161826] text-amber-300 border border-white/5">
+                        {b.mod}
+                      </span>
+                      <span className="text-xs text-amber-400 font-semibold flex items-center gap-1">
+                        <Lock className="w-3 h-3 text-amber-400" /> Unlock at ≥ 80%
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-3xl">{b.icon}</span>
+                      <h4 className="text-sm font-bold text-white">{b.title}</h4>
+                    </div>
+
+                    <p className="text-xs text-gray-400 leading-relaxed">{b.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ================= QUESTION: "READY TO DIVE IN?" + GOOGLE SIGN-IN ================= */}
       <section className="py-16 md:py-24 relative overflow-hidden bg-[#07080b]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">

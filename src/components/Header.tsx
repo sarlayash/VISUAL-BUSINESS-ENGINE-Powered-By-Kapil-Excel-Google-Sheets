@@ -387,6 +387,34 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
+            {/* Badges & Certificate Quick Status in Learner Modal */}
+            <div className="bg-[#12141f] border border-amber-500/20 rounded-xl p-3 mb-4 space-y-2">
+              <div className="flex items-center justify-between text-xs font-semibold">
+                <span className="text-amber-300 flex items-center gap-1.5">
+                  <Award className="w-3.5 h-3.5 text-amber-400" /> Badges & Certificates
+                </span>
+                <span className="text-gray-300 font-mono">
+                  {userProfile.earnedBadges?.length || 0}/6 Badges Earned
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-[11px] text-gray-400">
+                <span>Certificate Status:</span>
+                <span className="text-amber-400 font-bold">
+                  {userProfile.capstoneCompleted ? 'Diploma Unlocked' : 'Requires ≥ 80% on Module Exams'}
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  playClick();
+                  setIsAuthModalOpen(false);
+                  setActiveTab('certificates');
+                }}
+                className="w-full py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-bold transition flex items-center justify-center gap-1"
+              >
+                <span>View Full Badges & Certificates →</span>
+              </button>
+            </div>
+
             {/* Profile Customizer */}
             <div className="space-y-3 mb-6">
               <div>
