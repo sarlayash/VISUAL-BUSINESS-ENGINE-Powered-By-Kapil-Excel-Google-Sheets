@@ -827,6 +827,84 @@ function executeFunction(funcName: string, args: string[], grid: GridData, calli
       return { value: result };
     }
 
+    case 'TEXTJOIN': {
+      if (args.length < 3) return { value: '#ERROR!' };
+      const delim = String(evaluateExpression(args[0], grid, callingCellId).value ?? '');
+      const ignoreEmpty = String(evaluateExpression(args[1], grid, callingCellId).value).toUpperCase() === 'TRUE' || args[1] === '1';
+      const items: string[] = [];
+      for (let i = 2; i < args.length; i++) {
+        const vals = resolveRangeValues(args[i], grid);
+        for (const v of vals) {
+          if (v !== null && v !== undefined && String(v) !== '') {
+            items.push(String(v));
+          } else if (!ignoreEmpty) {
+            items.push('');
+          }
+        }
+      }
+      return { value: items.join(delim) };
+    }
+
+    case 'LEN': {
+      if (args.length === 0) return { value: 0 };
+      const str = String(evaluateExpression(args[0], grid, callingCellId).value ?? '');
+      return { value: str.length };
+    }
+
+    case 'LEFT': {
+      if (args.length === 0) return { value: '' };
+      const str = String(evaluateExpression(args[0], grid, callingCellId).value ?? '');
+      const num = args[1] !== undefined ? parseInt(String(evaluateExpression(args[1], grid, callingCellId).value), 10) : 1;
+      return { value: str.substring(0, num) };
+    }
+
+    case 'RIGHT': {
+      if (args.length === 0) return { value: '' };
+      const str = String(evaluateExpression(args[0], grid, callingCellId).value ?? '');
+      const num = args[1] !== undefined ? parseInt(String(evaluateExpression(args[1], grid, callingCellId).value), 10) : 1;
+      return { value: str.substring(Math.max(0, str.length - num)) };
+    }
+
+    case 'MID': {
+      if (args.length < 3) return { value: '' };
+      const str = String(evaluateExpression(args[0], grid, callingCellId).value ?? '');
+      const start = parseInt(String(evaluateExpression(args[1], grid, callingCellId).value), 10) - 1;
+      const len = parseInt(String(evaluateExpression(args[2], grid, callingCellId).value), 10);
+      return { value: str.substring(Math.max(0, start), Math.max(0, start) + len) };
+    }
+
+    case 'ROUND': {
+      if (args.length < 1) return { value: '#ERROR!' };
+      const num = parseFloat(String(evaluateExpression(args[0], grid, callingCellId).value));
+      const digits = args[1] !== undefined ? parseInt(String(evaluateExpression(args[1], grid, callingCellId).value), 10) : 0;
+      if (isNaN(num)) return { value: '#VALUE!' };
+      const factor = Math.pow(10, digits);
+      return { value: Math.round(num * factor) / factor };
+    }
+
+    case 'ABS': {
+      if (args.length < 1) return { value: '#ERROR!' };
+      const num = parseFloat(String(evaluateExpression(args[0], grid, callingCellId).value));
+      return { value: isNaN(num) ? '#VALUE!' : Math.abs(num) };
+    }
+
+    case 'INT': {
+      if (args.length < 1) return { value: '#ERROR!' };
+      const num = parseFloat(String(evaluateExpression(args[0], grid, callingCellId).value));
+      return { value: isNaN(num) ? '#VALUE!' : Math.floor(num) };
+    }
+
+    case 'PMT': {
+      if (args.length < 3) return { value: '#ERROR!' };
+      const rate = parseFloat(String(evaluateExpression(args[0], grid, callingCellId).value));
+      const nper = parseFloat(String(evaluateExpression(args[1], grid, callingCellId).value));
+      const pv = parseFloat(String(evaluateExpression(args[2], grid, callingCellId).value));
+      if (isNaN(rate) || isNaN(nper) || isNaN(pv)) return { value: '#VALUE!' };
+      if (rate === 0) return { value: Math.round((-pv / nper) * 100) / 100 };
+      const pmt = (rate * pv * Math.pow(1 + rate, nper)) / (Math.pow(1 + rate, nper) - 1);
+      return { value: Math.round(-pmt * 100) / 100 };
+    }
+
     default:
       return { value: '#NAME?', error: `Unknown function "${funcName}"` };
   }

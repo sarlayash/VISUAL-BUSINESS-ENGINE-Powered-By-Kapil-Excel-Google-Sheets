@@ -217,6 +217,86 @@ export const SpreadsheetSimulator: React.FC<SpreadsheetSimulatorProps> = ({
     setGrid(recalculateGrid(nextGrid));
   };
 
+  // Quick Inbuilt Function Execution
+  const handleExecuteInbuiltFunction = (formulaTemplate: string) => {
+    playSuccess();
+    setFormulaInput(formulaTemplate);
+    commitFormulaValue(formulaTemplate);
+  };
+
+  // Quick Preset Sample Data Filler
+  const handleFillSampleData = (datasetType: 'sales' | 'payroll' | 'inventory' | 'loans') => {
+    playSuccess();
+    const presets: Record<string, { headers: string[]; rows: (string | number)[][] }> = {
+      sales: {
+        headers: ['Order ID', 'Item Name', 'Units Sold', 'Unit Price (₹)', 'Total Sales (₹)'],
+        rows: [
+          ['ORD-101', 'Wireless Mouse Pro', 45, 1200, '=C2*D2'],
+          ['ORD-102', 'Mechanical Keyboard', 20, 3500, '=C3*D3'],
+          ['ORD-103', 'USB-C Fast Hub', 60, 1800, '=C4*D4'],
+          ['ORD-104', '4K Ultra Monitor', 12, 24000, '=C5*D5'],
+          ['ORD-105', 'Noise Canceling ANC', 30, 6500, '=C6*D6'],
+        ],
+      },
+      payroll: {
+        headers: ['Emp ID', 'Employee Name', 'Department', 'Base Salary (₹)', 'Rating (1-5)'],
+        rows: [
+          ['EMP-01', 'Aditi Sharma', 'Engineering', 1400000, 4.8],
+          ['EMP-02', 'Rohan Verma', 'Sales', 950000, 3.9],
+          ['EMP-03', 'Kavita Nair', 'Marketing', 1100000, 4.5],
+          ['EMP-04', 'Siddharth Joshi', 'Engineering', 1850000, 4.9],
+          ['EMP-05', 'Meera Rao', 'Operations', 850000, 3.4],
+        ],
+      },
+      inventory: {
+        headers: ['SKU Code', 'Description', 'Stock Qty', 'Unit Cost (₹)', 'Safety Stock'],
+        rows: [
+          ['SKU-A10', 'Titanium Fastener', 4500, 120, 2000],
+          ['SKU-B20', 'Ceramic Brake Rotor', 280, 8500, 300],
+          ['SKU-C30', 'Carbon Fiber Spar', 45, 125000, 50],
+          ['SKU-D40', 'Hydraulic Actuator', 1200, 1450, 800],
+          ['SKU-E50', 'Avionics Connector', 640, 3200, 500],
+        ],
+      },
+      loans: {
+        headers: ['Loan ID', 'Borrower Entity', 'Principal (₹)', 'Interest Rate', 'Tenure (Yrs)'],
+        rows: [
+          ['LN-801', 'Zenith Logistics', 5000000, 0.085, 5],
+          ['LN-802', 'Pulse Biotech Labs', 12000000, 0.092, 7],
+          ['LN-803', 'Apex Solar Parks', 25000000, 0.078, 10],
+          ['LN-804', 'CloudNine Data', 18000000, 0.088, 8],
+          ['LN-805', 'Vertex Textiles', 6500000, 0.095, 4],
+        ],
+      },
+    };
+
+    const ds = presets[datasetType] || presets.sales;
+    const newGrid: GridData = {};
+    ds.headers.forEach((header, colIdx) => {
+      const cellId = `${indexToColLetter(colIdx)}1`;
+      newGrid[cellId] = {
+        raw: header,
+        computed: header,
+        style: { bold: true, align: 'center', bgColor: '#181b28', textColor: '#f59e0b' },
+      };
+    });
+    ds.rows.forEach((row, rowIdx) => {
+      row.forEach((cellVal, colIdx) => {
+        const cellId = `${indexToColLetter(colIdx)}${rowIdx + 2}`;
+        const rawStr = String(cellVal ?? '');
+        newGrid[cellId] = {
+          raw: rawStr,
+          computed: cellVal,
+          isFormula: rawStr.startsWith('='),
+          style: { align: typeof cellVal === 'number' ? 'right' : 'left' },
+        };
+      });
+    });
+    setGrid(recalculateGrid(newGrid));
+    setSelectedCell('E2');
+    setFormulaInput(newGrid['E2']?.raw || '');
+  };
+
   // Validate Challenge
   const handleValidateSubmission = () => {
     playClick();
@@ -523,10 +603,74 @@ export const SpreadsheetSimulator: React.FC<SpreadsheetSimulatorProps> = ({
         />
         <button
           onClick={() => commitFormulaValue(formulaInput)}
-          className="px-3 py-1.5 bg-[#1f2233] hover:bg-amber-500/20 text-gray-300 hover:text-amber-300 rounded font-mono text-xs border border-white/10 transition"
+          className="px-3.5 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded font-mono text-xs border border-amber-500/40 font-bold transition flex items-center gap-1.5 active:scale-95"
         >
-          Enter
+          <Play className="w-3 h-3 fill-current" />
+          <span>Execute</span>
         </button>
+      </div>
+
+      {/* ================= INBUILT FUNCTIONS & DATA FILL QUICK-BAR ================= */}
+      <div className="bg-[#0e1017] border-b border-white/5 px-4 py-1.5 flex items-center justify-between gap-3 text-xs overflow-x-auto no-scrollbar shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="text-[10px] font-mono uppercase text-gray-400 font-bold flex items-center gap-1">
+            ⚡ Fill Data:
+          </span>
+          <button
+            onClick={() => handleFillSampleData('sales')}
+            className="px-2 py-0.5 rounded bg-[#181a26] hover:bg-amber-500/20 text-amber-300 text-[11px] border border-white/5 font-medium transition"
+          >
+            Sales Ledger
+          </button>
+          <button
+            onClick={() => handleFillSampleData('payroll')}
+            className="px-2 py-0.5 rounded bg-[#181a26] hover:bg-white/10 text-gray-300 hover:text-white text-[11px] border border-white/5 transition"
+          >
+            HR Payroll
+          </button>
+          <button
+            onClick={() => handleFillSampleData('inventory')}
+            className="px-2 py-0.5 rounded bg-[#181a26] hover:bg-white/10 text-gray-300 hover:text-white text-[11px] border border-white/5 transition"
+          >
+            Inventory
+          </button>
+          <button
+            onClick={() => handleFillSampleData('loans')}
+            className="px-2 py-0.5 rounded bg-[#181a26] hover:bg-white/10 text-gray-300 hover:text-white text-[11px] border border-white/5 transition"
+          >
+            Loans
+          </button>
+        </div>
+
+        <div className="h-4 w-px bg-white/10 shrink-0 mx-1"></div>
+
+        {/* Function Quick Buttons */}
+        <div className="flex items-center gap-1 shrink-0">
+          <span className="text-[10px] font-mono uppercase text-amber-400 font-bold">Inbuilt fx:</span>
+          {[
+            { label: 'SUM', formula: '=SUM(C2:C6)' },
+            { label: 'AVERAGE', formula: '=AVERAGE(C2:C6)' },
+            { label: 'COUNT', formula: '=COUNT(C2:C6)' },
+            { label: 'MAX', formula: '=MAX(C2:C6)' },
+            { label: 'MIN', formula: '=MIN(C2:C6)' },
+            { label: 'IF', formula: '=IF(C2>20, "High", "Low")' },
+            { label: 'SUMIF', formula: '=SUMIF(C2:C6, ">20", D2:D6)' },
+            { label: 'COUNTIF', formula: '=COUNTIF(C2:C6, ">20")' },
+            { label: 'VLOOKUP', formula: '=VLOOKUP("ORD-101", A2:D6, 3, FALSE)' },
+            { label: 'XLOOKUP', formula: '=XLOOKUP("ORD-102", A2:A6, C2:C6)' },
+            { label: 'ROUND', formula: '=ROUND(D2*1.18, 2)' },
+            { label: 'PMT', formula: '=PMT(0.08/12, 60, -1000000)' },
+          ].map((fn) => (
+            <button
+              key={fn.label}
+              onClick={() => handleExecuteInbuiltFunction(fn.formula)}
+              className="px-2 py-0.5 rounded bg-[#151724] hover:bg-amber-500/20 text-gray-300 hover:text-amber-300 border border-white/5 font-mono text-[11px] transition active:scale-95"
+              title={`Click to insert and execute ${fn.formula}`}
+            >
+              {fn.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ================= MAIN SPLIT VIEW: SPREADSHEET & BUSINESS BRIEF ================= */}

@@ -196,6 +196,40 @@ export const CurriculumView: React.FC<CurriculumViewProps> = ({
             </div>
           </div>
 
+          {/* MODULE CERTIFICATION ASSESSMENT / MOCK TEST CARD */}
+          <div className="bg-gradient-to-r from-[#14121d] via-[#101322] to-[#0d1620] border-2 border-amber-500/30 rounded-2xl p-6 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-2 text-center md:text-left">
+              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-amber-500/10 text-amber-300 text-xs font-bold border border-amber-500/30">
+                <Clock className="w-3.5 h-3.5" />
+                <span>25-MINUTE TIMER-BASED ACCREDITATION EXAM</span>
+              </div>
+              <h3 className="text-xl font-black text-white">
+                Module {activeModule.id} Mock Test: 10 Questions + 5 Practical Exercises
+              </h3>
+              <p className="text-xs text-gray-400 max-w-xl">
+                Badge "{activeModule.badgeName}" and Certificate remain strictly locked until you score at least 80% on this assessment.
+                {userProfile.moduleScores?.[activeModule.id] ? (
+                  <span className="block mt-1 font-mono text-amber-300">
+                    Your current score: {userProfile.moduleScores[activeModule.id].score}% ({userProfile.moduleScores[activeModule.id].passed ? 'PASSED' : 'NEEDS ≥ 80%'})
+                  </span>
+                ) : (
+                  <span className="block mt-1 text-gray-500">Not yet attempted.</span>
+                )}
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                playClick();
+                onNavigateTab('assessments');
+              }}
+              className="px-5 py-3 rounded-xl gold-gradient-btn text-black font-extrabold text-xs uppercase tracking-wider flex items-center gap-2 shadow-xl shrink-0 hover:scale-105 active:scale-95 transition"
+            >
+              <Play className="w-4 h-4 fill-black" />
+              <span>Launch Module {activeModule.id} Exam</span>
+            </button>
+          </div>
+
           {/* DUAL LEARNING MATRIX: EXCEL VS GOOGLE SHEETS (PRD Pages 16-17) */}
           <div className="bg-[#0f1118] border border-amber-500/20 rounded-2xl p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between">

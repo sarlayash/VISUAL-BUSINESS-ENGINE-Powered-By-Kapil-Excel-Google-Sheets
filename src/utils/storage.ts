@@ -157,6 +157,82 @@ export function addXpAndProgress(
   return updated;
 }
 
+// Save Assessment Mock Test result with strict 80% passing threshold
+export function saveModuleAssessmentResult(
+  moduleId: number,
+  badgeName: string,
+  score: number,
+  correctQuestions: number,
+  totalQuestions: number,
+  correctExercises: number,
+  totalExercises: number,
+  timeSpentSeconds: number
+): { profile: UserProfile; passed: boolean } | null {
+  const current = loadUserProfile();
+  if (!current) return null;
+
+  const passed = score >= 80;
+  const updated: UserProfile = { ...current };
+
+  if (!updated.moduleScores) {
+    updated.moduleScores = {};
+  }
+
+  const prevBest = updated.moduleScores[moduleId]?.score || 0;
+  const bestScore = Math.max(score, prevBest);
+
+  updated.moduleScores[moduleId] = {
+    moduleId,
+    score: bestScore,
+    passed: bestScore >= 80,
+    correctQuestions,
+    totalQuestions,
+    correctExercises,
+    totalExercises,
+    timeSpentSeconds,
+    completedAt: new Date().toISOString(),
+  };
+
+  // Strictly unlock module badge & completion only if score >= 80%
+  if (passed) {
+    if (!updated.earnedBadges.includes(badgeName)) {
+      updated.earnedBadges.push(badgeName);
+    }
+    if (!updated.completedModules.includes(moduleId)) {
+      updated.completedModules.push(moduleId);
+    }
+    // Award XP for passing timed assessment with honors
+    updated.xp += 250;
+
+    // Check if all 5 modules passed with >= 80% to award the grand trophy
+    if (
+      [1, 2, 3, 4, 5].every((m) => updated.moduleScores?.[m]?.passed) &&
+      !updated.earnedBadges.includes('Visual Business Engineer')
+    ) {
+      updated.earnedBadges.push('Visual Business Engineer');
+      updated.xp += 500;
+    }
+  }
+
+  // Recalculate level
+  if (updated.xp >= 3500) {
+    updated.level = 'Visual Business Engineer';
+  } else if (updated.xp >= 2500) {
+    updated.level = 'Business Architect';
+  } else if (updated.xp >= 1800) {
+    updated.level = 'Strategist';
+  } else if (updated.xp >= 1000) {
+    updated.level = 'Analyst';
+  } else if (updated.xp >= 400) {
+    updated.level = 'Practitioner';
+  } else {
+    updated.level = 'Explorer';
+  }
+
+  saveUserProfile(updated);
+  return { profile: updated, passed };
+}
+
 export function saveCustomSheet(sheetKey: string, data: any): void {
   if (typeof window === 'undefined') return;
   try {

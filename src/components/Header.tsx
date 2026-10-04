@@ -71,6 +71,8 @@ export const Header: React.FC<HeaderProps> = ({
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
     { id: 'simulator', label: 'Simulator Lab', icon: '⚡' },
+    { id: 'functions', label: 'fx Function Lab', icon: '⚡' },
+    { id: 'assessments', label: 'Assessments (Mocks)', icon: '⏱️' },
     { id: 'curriculum', label: 'Curriculum (30h)', icon: '📚' },
     { id: 'labs', label: '10 Business Labs', icon: '🏢' },
     { id: 'capstone', label: 'Capstone', icon: '🏆' },

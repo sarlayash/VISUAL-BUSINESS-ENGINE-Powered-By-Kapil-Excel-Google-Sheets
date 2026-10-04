@@ -10,6 +10,8 @@ import { BadgesAndCertificatesView } from './components/BadgesAndCertificatesVie
 import { VerificationPortal } from './components/VerificationPortal';
 import { LeaderboardView } from './components/LeaderboardView';
 import { AdminDashboard } from './components/AdminDashboard';
+import { InbuiltFunctionLab } from './components/InbuiltFunctionLab';
+import { AssessmentsView } from './components/AssessmentsView';
 import { MODULES_DATA } from './data/modulesData';
 import { Challenge, IndustryLab, UserProfile } from './types';
 import {
@@ -204,6 +206,41 @@ export function App() {
     setActiveTab('simulator');
   };
 
+  // Launch Spreadsheet Simulator IDE with custom dataset & formula
+  const handleTryInIde = (dataset: any, formula: string, taskTitle: string) => {
+    const ideChallenge: Challenge = {
+      id: `custom_ide_${Date.now()}`,
+      moduleId: 1,
+      lessonId: 'IDE',
+      title: taskTitle || 'Spreadsheet Simulator IDE',
+      difficulty: 'Practitioner',
+      businessDomain: 'Enterprise',
+      businessStory: 'Interactive IDE environment for custom dataset experimentation.',
+      businessGoal: `Test formula ${formula} or experiment with any spreadsheet calculations.`,
+      instructions: [
+        'Explore the loaded dataset in the interactive spreadsheet grid.',
+        'Use the formula bar (fx) to edit, test, and execute custom formulas.',
+        'Toggle between Excel and Google Sheets modes.',
+      ],
+      initialData: {
+        headers: dataset.headers,
+        rows: dataset.rows,
+      },
+      validationRules: [],
+      hints: [
+        { level: 1, title: 'IDE Guide', text: `Currently executing: ${formula}`, penaltyXp: 0 },
+      ],
+      solutionExplanation: `Formula ${formula} evaluated on this dataset.`,
+      excelFormula: formula,
+      googleSheetsFormula: formula,
+      xpReward: 50,
+    };
+
+    MODULES_DATA[0].challenges.push(ideChallenge);
+    setActiveChallengeId(ideChallenge.id);
+    setActiveTab('simulator');
+  };
+
   return (
     <div className="min-h-screen bg-[#07080b] flex flex-col font-sans selection:bg-amber-500/30 selection:text-amber-300">
       {/* PWA INSTALL FLOATING BANNER (FOR PHONE USERS) */}
@@ -276,6 +313,22 @@ export function App() {
               </div>
             )}
 
+            {activeTab === 'functions' && (
+              <InbuiltFunctionLab onTryInIde={handleTryInIde} />
+            )}
+
+            {activeTab === 'assessments' && (
+              <AssessmentsView
+                userProfile={userProfile}
+                onUpdateProfile={(p) => {
+                  saveUserProfile(p);
+                  setUserProfile(p);
+                }}
+                onTryInIde={handleTryInIde}
+                onNavigateTab={setActiveTab}
+              />
+            )}
+
             {activeTab === 'curriculum' && (
               <CurriculumView
                 userProfile={userProfile}
@@ -300,7 +353,10 @@ export function App() {
             )}
 
             {activeTab === 'certificates' && (
-              <BadgesAndCertificatesView userProfile={userProfile} />
+              <BadgesAndCertificatesView
+                userProfile={userProfile}
+                onNavigateTab={setActiveTab}
+              />
             )}
 
             {activeTab === 'verify' && <VerificationPortal />}

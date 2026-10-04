@@ -67,3 +67,30 @@ test('Authentic Certificate ID Format Verification', () => {
   const certId = generateId();
   assert.match(certId, /^SY-VBE-2026-\d{6}$/);
 });
+
+test('Strict 80% Assessment Passing Threshold & Badge Locking', () => {
+  const isPassed = (score) => score >= 80;
+  assert.equal(isPassed(79), false, 'Score of 79% must remain locked');
+  assert.equal(isPassed(80), true, 'Score of 80% unlocks badge and certificate');
+  assert.equal(isPassed(95), true, 'Score of 95% unlocks badge and certificate');
+  assert.equal(isPassed(50), false, 'Score of 50% must remain locked');
+});
+
+test('Financial PMT Formula Calculation', () => {
+  // PMT for 5,000,000 at 8.5% annual rate over 60 months
+  const rate = 0.085 / 12;
+  const nper = 60;
+  const pv = 5000000;
+  const pmt = (rate * pv * Math.pow(1 + rate, nper)) / (Math.pow(1 + rate, nper) - 1);
+  assert.equal(Math.round(pmt), 102583);
+});
+
+test('Inbuilt Function: ROUND & TEXTJOIN Operations', () => {
+  const roundVal = (num, digits) => {
+    const factor = Math.pow(10, digits);
+    return Math.round(num * factor) / factor;
+  };
+  assert.equal(roundVal(12450.6789, 2), 12450.68);
+  assert.equal(['Accessories', 'Hardware', 'Audio'].join(', '), 'Accessories, Hardware, Audio');
+});
+

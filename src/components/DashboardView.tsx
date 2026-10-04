@@ -13,6 +13,8 @@ import {
   ChevronRight,
   Star,
   ExternalLink,
+  Clock,
+  Code,
 } from 'lucide-react';
 import { UserProfile, ModuleInfo } from '../types';
 import { MODULES_DATA } from '../data/modulesData';
@@ -146,6 +148,74 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           </div>
         ))}
+      </div>
+
+      {/* ================= NEW: INBUILT FUNCTIONS LAB & TIMER ASSESSMENTS HIGHLIGHTS ================= */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Function Lab Quick Card */}
+        <div className="bg-gradient-to-br from-[#121422] to-[#0c0d16] border border-amber-500/30 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20 font-bold">
+                ⚡ INTERACTIVE FX PLAYGROUND
+              </span>
+              <span className="text-xs text-gray-400">30+ Functions</span>
+            </div>
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <Code className="w-5 h-5 text-amber-400" />
+              Inbuilt Functions Lab & IDE Executor
+            </h3>
+            <p className="text-xs text-gray-300 leading-relaxed">
+              Click <strong>"Fill Data"</strong> to load business datasets (Sales, Payroll, Inventory, Loans), click any inbuilt function to execute immediately, and launch directly into the <strong>full IDE Spreadsheet Simulator</strong>.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              playClick();
+              onNavigateTab('functions');
+            }}
+            className="w-full py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center justify-center gap-2 transition active:scale-95"
+          >
+            <span>Launch Inbuilt Function Lab</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* Timed Assessments Quick Card */}
+        <div className="bg-gradient-to-br from-[#171120] to-[#0d0e18] border border-amber-500/30 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/10 text-rose-300 border border-rose-500/20 font-bold">
+                ⏱️ STRICT 80% CERTIFICATION BENCHMARK
+              </span>
+              <span className="text-xs text-amber-400 font-mono">
+                {
+                  [1, 2, 3, 4, 5].filter(
+                    (m) => (userProfile.moduleScores?.[m]?.score || 0) >= 80
+                  ).length
+                }
+                /5 Passed
+              </span>
+            </div>
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <Clock className="w-5 h-5 text-amber-400" />
+              Timer-Based Module Mock Tests
+            </h3>
+            <p className="text-xs text-gray-300 leading-relaxed">
+              Every module features an official <strong>25-minute exam</strong> with <strong>10 scenario questions + 5 interactive exercises</strong>. Badges and certificates remain locked unless you score ≥ 80%.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              playClick();
+              onNavigateTab('assessments');
+            }}
+            className="w-full py-2.5 rounded-xl gold-gradient-btn text-black text-xs font-extrabold uppercase tracking-wide flex items-center justify-center gap-2 shadow-lg transition active:scale-95"
+          >
+            <span>Take Module Assessments (Mocks)</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
       {/* ================= 5 MODULES ROADMAP (30 HOURS) ================= */}

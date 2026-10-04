@@ -77,6 +77,55 @@ export interface ModuleInfo {
   }[];
 }
 
+export interface AssessmentQuestion {
+  id: string;
+  question: string;
+  scenario: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+export interface AssessmentExercise {
+  id: string;
+  title: string;
+  scenario: string;
+  task: string;
+  targetCell: string;
+  dataset: {
+    headers: string[];
+    rows: (string | number)[][];
+  };
+  expectedValue: CellValue;
+  expectedFormulaKeywords: string[];
+  tolerance?: number;
+  hint: string;
+  explanation: string;
+  starterFormula?: string;
+}
+
+export interface ModuleAssessment {
+  moduleId: number;
+  moduleTitle: string;
+  badgeName: string;
+  timeLimitMinutes: number; // e.g. 25
+  passingScorePercent: number; // 80% strictly required
+  questions: AssessmentQuestion[]; // 10 questions
+  exercises: AssessmentExercise[]; // 5 exercises
+}
+
+export interface AssessmentScore {
+  moduleId: number;
+  score: number; // 0-100%
+  passed: boolean; // score >= 80%
+  correctQuestions: number;
+  totalQuestions: number;
+  correctExercises: number;
+  totalExercises: number;
+  timeSpentSeconds: number;
+  completedAt: string;
+}
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -93,6 +142,7 @@ export interface UserProfile {
   capstoneStage: number; // 1 to 9
   certificateId?: string;
   certificateIssueDate?: string;
+  moduleScores?: { [moduleId: number]: AssessmentScore };
 }
 
 export interface LeaderboardUser {
