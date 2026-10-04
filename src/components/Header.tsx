@@ -30,6 +30,7 @@ interface HeaderProps {
   onInstallPwa: () => void;
   onSignOut?: () => void;
   onOpenSignIn?: () => void;
+  onLoadDemoUser?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -41,6 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
   onInstallPwa,
   onSignOut,
   onOpenSignIn,
+  onLoadDemoUser,
 }) => {
   const [isOnline, setIsOnline] = useState<boolean>(true);
   const [soundMuted, setSoundMuted] = useState<boolean>(false);
@@ -80,6 +82,7 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'labs', label: '10 Business Labs', icon: '🏢' },
     { id: 'capstone', label: 'Capstone', icon: '🏆' },
     { id: 'certificates', label: 'Certificates & Badges', icon: '🏅' },
+    { id: 'sitemap', label: 'Site Map', icon: '🗺️' },
     { id: 'verify', label: 'Verify Portal', icon: '🔍' },
     { id: 'leaderboard', label: 'Leaderboard', icon: '📈' },
     { id: 'admin', label: 'Admin', icon: '⚙️' },
@@ -168,6 +171,21 @@ export const Header: React.FC<HeaderProps> = ({
                 {soundMuted ? <VolumeX className="w-4 h-4 text-gray-500" /> : <Volume2 className="w-4 h-4 text-amber-400" />}
               </button>
 
+              {/* Quick Demo User Switcher */}
+              {onLoadDemoUser && (
+                <button
+                  onClick={() => {
+                    playClick();
+                    onLoadDemoUser();
+                  }}
+                  className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border border-purple-500/40 text-purple-200 hover:bg-purple-800/40 text-xs font-bold transition shadow-sm hover:scale-105 active:scale-95"
+                  title="Load Accredited Demo Graduate Profile (Unlock all 6 Badges & Certificates)"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-purple-300" />
+                  <span>🎓 Demo User</span>
+                </button>
+              )}
+
               {/* PWA Install Button */}
               {deferredPrompt && (
                 <button
@@ -230,17 +248,30 @@ export const Header: React.FC<HeaderProps> = ({
                   )}
                 </>
               ) : (
-                /* If NOT logged in: Continue with Google Button in Header */
-                <button
-                  onClick={() => {
-                    playClick();
-                    onOpenSignIn ? onOpenSignIn() : setIsAuthModalOpen(true);
-                  }}
-                  className="px-3.5 py-1.5 rounded-xl gold-gradient-btn text-black font-extrabold text-xs uppercase tracking-wide flex items-center gap-1.5 shadow"
-                >
-                  <LogIn className="w-3.5 h-3.5" />
-                  <span>Google Sign-In</span>
-                </button>
+                /* If NOT logged in: Site Map & Google Sign-In */
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      playClick();
+                      setActiveTab('sitemap');
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-[#141622] hover:bg-white/5 border border-white/10 text-gray-300 hover:text-white text-xs font-bold flex items-center gap-1.5 transition"
+                    title="Explore Full Curriculum & Architecture Site Map"
+                  >
+                    <span>🗺️</span>
+                    <span className="hidden sm:inline">Site Map</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      playClick();
+                      onOpenSignIn ? onOpenSignIn() : setIsAuthModalOpen(true);
+                    }}
+                    className="px-3.5 py-1.5 rounded-xl gold-gradient-btn text-black font-extrabold text-xs uppercase tracking-wide flex items-center gap-1.5 shadow"
+                  >
+                    <LogIn className="w-3.5 h-3.5" />
+                    <span>Google Sign-In</span>
+                  </button>
+                </div>
               )}
 
               {/* Mobile menu toggle */}
@@ -287,6 +318,19 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
               ))}
             </div>
+
+            {onLoadDemoUser && (
+              <button
+                onClick={() => {
+                  onLoadDemoUser();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full mt-2 py-2 rounded-lg bg-purple-950/40 text-purple-200 border border-purple-500/40 text-xs font-bold flex items-center justify-center gap-2"
+              >
+                <Sparkles className="w-4 h-4 text-purple-300" />
+                <span>🎓 Load Demo User (View All Badges & Certs)</span>
+              </button>
+            )}
 
             {onSignOut && (
               <button

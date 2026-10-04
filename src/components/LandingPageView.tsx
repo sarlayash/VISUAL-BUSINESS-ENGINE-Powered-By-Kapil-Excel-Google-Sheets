@@ -23,9 +23,15 @@ import { signInWithGoogleFirebase } from '../utils/firebase';
 interface LandingPageViewProps {
   onSignIn: (name: string, email: string, avatar?: string, uid?: string) => void;
   onExplorePreview?: () => void;
+  onLoadDemoUser?: () => void;
+  onNavigateTab?: (tab: string) => void;
 }
 
-export const LandingPageView: React.FC<LandingPageViewProps> = ({ onSignIn }) => {
+export const LandingPageView: React.FC<LandingPageViewProps> = ({
+  onSignIn,
+  onLoadDemoUser,
+  onNavigateTab,
+}) => {
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [showSignInModal, setShowSignInModal] = useState(false);
@@ -114,23 +120,48 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({ onSignIn }) =>
               </p>
 
               {/* CTAs */}
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 pt-2 flex-wrap">
                 <button
                   onClick={() => {
                     playClick();
                     setShowSignInModal(true);
                   }}
-                  className="w-full sm:w-auto px-8 py-4 rounded-xl gold-gradient-btn text-black font-extrabold text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-2xl"
+                  className="w-full sm:w-auto px-7 py-4 rounded-xl gold-gradient-btn text-black font-extrabold text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-2xl transition hover:scale-105 active:scale-95"
                 >
                   <Play className="w-4 h-4 fill-black" />
                   <span>Start Your Mission</span>
                 </button>
 
+                {onLoadDemoUser && (
+                  <button
+                    onClick={() => {
+                      playSuccess();
+                      onLoadDemoUser();
+                    }}
+                    className="w-full sm:w-auto px-6 py-4 rounded-xl bg-gradient-to-r from-amber-500/20 via-amber-600/20 to-amber-500/20 border border-amber-500/50 text-amber-300 hover:text-white font-extrabold text-sm flex items-center justify-center gap-2 transition shadow-lg hover:border-amber-400"
+                  >
+                    <Award className="w-4 h-4 text-amber-400" />
+                    <span>Demo User (See Badges & Certs)</span>
+                  </button>
+                )}
+
+                {onNavigateTab && (
+                  <button
+                    onClick={() => {
+                      playClick();
+                      onNavigateTab('sitemap');
+                    }}
+                    className="w-full sm:w-auto px-5 py-4 rounded-xl bg-[#141624] hover:bg-white/10 text-white font-semibold text-sm border border-white/10 flex items-center justify-center gap-2 transition"
+                  >
+                    <span>🗺️ Site Map</span>
+                  </button>
+                )}
+
                 <a
                   href="#note-from-kapil"
-                  className="w-full sm:w-auto px-6 py-4 rounded-xl bg-[#141624] hover:bg-white/10 text-white font-semibold text-sm border border-white/10 flex items-center justify-center gap-2 transition"
+                  className="w-full sm:w-auto px-5 py-4 rounded-xl bg-[#141624] hover:bg-white/10 text-gray-300 hover:text-white font-semibold text-sm border border-white/10 flex items-center justify-center gap-2 transition"
                 >
-                  <span>Read Note From Kapil</span>
+                  <span>Note From Kapil</span>
                   <ArrowRight className="w-4 h-4 text-amber-400" />
                 </a>
               </div>
@@ -453,6 +484,22 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({ onSignIn }) =>
                   Continue
                 </button>
               </form>
+
+              {onLoadDemoUser && (
+                <div className="pt-2 border-t border-white/10 text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowSignInModal(false);
+                      onLoadDemoUser();
+                    }}
+                    className="text-xs text-amber-400 hover:text-amber-300 font-bold flex items-center justify-center gap-1.5 mx-auto transition"
+                  >
+                    <Award className="w-3.5 h-3.5" />
+                    <span>Explore as Demo User (All Badges & Certs Unlocked)</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

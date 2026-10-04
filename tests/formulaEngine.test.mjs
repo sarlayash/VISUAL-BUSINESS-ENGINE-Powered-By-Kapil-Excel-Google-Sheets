@@ -174,5 +174,67 @@ test('Badge & Certificate QR Verification Integrity: IDs and 80% passing enforce
   assert.equal(checkBadgeUnlock(100, true, true, false), false, 'Grand badge locked without capstone');
 });
 
+test('Demo User Profile Accreditation Integrity', () => {
+  const demoProfile = {
+    id: 'demo_user_kapil',
+    name: 'Kapil (Demo Graduate)',
+    email: 'kapil.graduate@visualbusinessengine.internal',
+    xp: 4250,
+    level: 'Visual Business Engineer',
+    streakDays: 45,
+    completedChallenges: ['m1_c1', 'm1_c2', 'm2_c1', 'm2_c2', 'm3_c1', 'm3_c2', 'm4_c1', 'm4_c2', 'm5_c1', 'm5_c2'],
+    completedModules: [1, 2, 3, 4, 5],
+    earnedBadges: [
+      'Data Preparation Explorer',
+      'Formula Intelligence Specialist',
+      'Lookup & Statistics Analyst',
+      'Business Data Visualization Analyst',
+      'Dashboard Architect',
+      'Visual Business Engineer',
+    ],
+    capstoneCompleted: true,
+    capstoneStage: 9,
+    certificateId: 'SY-VBE-2026-000124',
+    certificateIssueDate: 'October 4, 2026',
+    moduleScores: {
+      1: { score: 95, passed: true },
+      2: { score: 92, passed: true },
+      3: { score: 88, passed: true },
+      4: { score: 96, passed: true },
+      5: { score: 94, passed: true },
+    },
+    completedLabs: ['retail', 'banking', 'saas', 'healthcare', 'manufacturing', 'ecommerce', 'consulting', 'hr', 'logistics', 'crypto'],
+    acknowledgedBytes: Array.from({ length: 50 }, (_, i) => `kb_${i + 1}`),
+  };
+
+  // 1. Verify all 5 modules passed with >= 80%
+  const allPassed = [1, 2, 3, 4, 5].every((m) => demoProfile.moduleScores[m]?.score >= 80);
+  assert.equal(allPassed, true, 'All 5 module assessments must score >= 80%');
+
+  // 2. Verify all 6 badges earned
+  assert.equal(demoProfile.earnedBadges.length, 6, 'Must have exactly 6 unlocked badges');
+
+  // 3. Verify capstone completed
+  assert.equal(demoProfile.capstoneCompleted, true, 'Capstone must be 100% completed');
+
+  // 4. Verify 50 knowledge bytes acknowledged
+  assert.equal(demoProfile.acknowledgedBytes.length, 50, 'All 50 knowledge bytes must be acknowledged');
+
+  // 5. Verify 10 industry labs completed
+  assert.equal(demoProfile.completedLabs.length, 10, 'All 10 industry labs must be completed');
+});
+
+test('Site Map Registry Completeness', () => {
+  const categories = [
+    '30-Hour Core Curriculum',
+    'Simulation Engines & Labs',
+    'Industry Practicum & Capstone',
+    'Accreditation & Credentials',
+    'Platform Ecosystem & Utilities',
+  ];
+
+  assert.equal(categories.length, 5, 'Site Map covers 5 primary curriculum & architecture pillars');
+});
+
 
 

@@ -15,6 +15,7 @@ import { AssessmentsView } from './components/AssessmentsView';
 import { PivotAndChartsSimulator } from './components/PivotAndChartsSimulator';
 import { MacroSimulator } from './components/MacroSimulator';
 import { KnowledgeBytesView } from './components/KnowledgeBytesView';
+import { SiteMapView } from './components/SiteMapView';
 import { MODULES_DATA } from './data/modulesData';
 import { Challenge, IndustryLab, UserProfile } from './types';
 import {
@@ -23,6 +24,7 @@ import {
   signInWithGoogle,
   signOutUser,
   addXpAndProgress,
+  signInAsDemoUser,
 } from './utils/storage';
 import { signOutFirebase, onFirebaseAuthStateChange } from './utils/firebase';
 import { playClick, playSuccess, playLevelUp } from './utils/soundEffects';
@@ -106,6 +108,21 @@ export function App() {
         spread: 70,
         origin: { y: 0.6 },
         colors: ['#F59E0B', '#FBBF24', '#FFFFFF'],
+      });
+    } catch (e) {}
+  };
+
+  const handleLoadDemoUser = () => {
+    const demoProfile = signInAsDemoUser();
+    setUserProfile(demoProfile);
+    setActiveTab('certificates');
+    playSuccess();
+    try {
+      confetti({
+        particleCount: 120,
+        spread: 90,
+        origin: { y: 0.5 },
+        colors: ['#F59E0B', '#10B981', '#6366F1', '#EC4899'],
       });
     } catch (e) {}
   };
@@ -295,15 +312,29 @@ export function App() {
         onInstallPwa={handleInstallPwa}
         onSignOut={handleSignOut}
         onOpenSignIn={() => setActiveTab('landing')}
+        onLoadDemoUser={handleLoadDemoUser}
       />
 
       {/* Main App Container */}
       <main className="flex-1 flex flex-col">
-        {/* If on verification portal: accessible publicly for instant QR scan authentication */}
+        {/* Verification portal & Site Map: accessible publicly for instant evaluation & QR scan */}
         {activeTab === 'verify' ? (
           <VerificationPortal />
+        ) : activeTab === 'sitemap' ? (
+          <SiteMapView
+            userProfile={userProfile}
+            onNavigateTab={(tab, meta) => {
+              setActiveTab(tab);
+              if (meta?.challengeId) setActiveChallengeId(meta.challengeId);
+            }}
+            onLoadDemoUser={handleLoadDemoUser}
+          />
         ) : !userProfile || activeTab === 'landing' ? (
-          <LandingPageView onSignIn={handleGoogleSignIn} />
+          <LandingPageView
+            onSignIn={handleGoogleSignIn}
+            onLoadDemoUser={handleLoadDemoUser}
+            onNavigateTab={setActiveTab}
+          />
         ) : (
           /* When signed in: All content loads dynamically! */
           <>
@@ -400,6 +431,18 @@ export function App() {
               <BadgesAndCertificatesView
                 userProfile={userProfile}
                 onNavigateTab={setActiveTab}
+                onLoadDemoUser={handleLoadDemoUser}
+              />
+            )}
+
+            {activeTab === 'sitemap' && (
+              <SiteMapView
+                userProfile={userProfile}
+                onNavigateTab={(tab, meta) => {
+                  setActiveTab(tab);
+                  if (meta?.challengeId) setActiveChallengeId(meta.challengeId);
+                }}
+                onLoadDemoUser={handleLoadDemoUser}
               />
             )}
 

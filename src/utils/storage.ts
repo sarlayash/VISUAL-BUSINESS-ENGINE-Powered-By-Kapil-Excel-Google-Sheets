@@ -393,3 +393,110 @@ export function markAllModuleItemsComplete(moduleId: number, challengeIds: strin
   return updated;
 }
 
+// Create and load a fully accredited Demo User profile with all badges & certificates unlocked
+export function getDemoGraduateProfile(): UserProfile {
+  return {
+    id: 'usr_demo_graduate_kapil',
+    name: 'Kapil (Demo Graduate)',
+    email: 'kapil.graduate@sarlayash.org',
+    avatar: 'https://ui-avatars.com/api/?name=Kapil+Graduate&background=F59E0B&color=07080B&bold=true',
+    xp: 4250,
+    level: 'Visual Business Engineer',
+    streakDays: 28,
+    lastActiveDate: new Date().toISOString().split('T')[0],
+    completedChallenges: [
+      'm1_c1', 'm1_c2', 'm1_c3', 'm1_c4',
+      'm2_c1', 'm2_c2', 'm2_c3', 'm2_c4',
+      'm3_c1', 'm3_c2', 'm3_c3', 'm3_c4',
+      'm4_c1', 'm4_c2', 'm4_c3', 'm4_c4',
+      'm5_c1', 'm5_c2', 'm5_c3', 'm5_c4',
+    ],
+    completedModules: [1, 2, 3, 4, 5],
+    earnedBadges: [
+      'Data Preparation Explorer',
+      'Formula Intelligence Specialist',
+      'Lookup & Statistics Analyst',
+      'Business Data Visualization Analyst',
+      'Dashboard Architect',
+      'Visual Business Engineer',
+    ],
+    capstoneCompleted: true,
+    capstoneStage: 9,
+    certificateId: 'SY-VBE-2026-000124',
+    certificateIssueDate: 'October 4, 2026',
+    moduleScores: {
+      1: {
+        moduleId: 1,
+        score: 95,
+        passed: true,
+        correctQuestions: 10,
+        totalQuestions: 10,
+        correctExercises: 4,
+        totalExercises: 5,
+        timeSpentSeconds: 780,
+        completedAt: new Date().toISOString(),
+      },
+      2: {
+        moduleId: 2,
+        score: 92,
+        passed: true,
+        correctQuestions: 9,
+        totalQuestions: 10,
+        correctExercises: 5,
+        totalExercises: 5,
+        timeSpentSeconds: 840,
+        completedAt: new Date().toISOString(),
+      },
+      3: {
+        moduleId: 3,
+        score: 88,
+        passed: true,
+        correctQuestions: 9,
+        totalQuestions: 10,
+        correctExercises: 4,
+        totalExercises: 5,
+        timeSpentSeconds: 910,
+        completedAt: new Date().toISOString(),
+      },
+      4: {
+        moduleId: 4,
+        score: 96,
+        passed: true,
+        correctQuestions: 10,
+        totalQuestions: 10,
+        correctExercises: 5,
+        totalExercises: 5,
+        timeSpentSeconds: 720,
+        completedAt: new Date().toISOString(),
+      },
+      5: {
+        moduleId: 5,
+        score: 94,
+        passed: true,
+        correctQuestions: 9,
+        totalQuestions: 10,
+        correctExercises: 5,
+        totalExercises: 5,
+        timeSpentSeconds: 800,
+        completedAt: new Date().toISOString(),
+      },
+    },
+    completedLabs: [
+      'retail', 'banking', 'saas', 'healthcare', 'manufacturing',
+      'ecommerce', 'consulting', 'hr', 'logistics', 'crypto'
+    ],
+    completedSections: [
+      'sec_1_Spreadsheet', 'sec_2_Multi-Cond', 'sec_3_XLOOKUP',
+      'sec_4_Pivot', 'sec_5_Boardroom'
+    ],
+    acknowledgedBytes: Array.from({ length: 50 }, (_, i) => `kb_${i + 1}`),
+  };
+}
+
+export function signInAsDemoUser(): UserProfile {
+  const demoProfile = getDemoGraduateProfile();
+  saveUserProfile(demoProfile);
+  return demoProfile;
+}
+
+

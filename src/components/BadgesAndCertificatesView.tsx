@@ -34,11 +34,13 @@ import { playClick, playSuccess, playError } from '../utils/soundEffects';
 interface BadgesAndCertificatesViewProps {
   userProfile: UserProfile;
   onNavigateTab?: (tab: string) => void;
+  onLoadDemoUser?: () => void;
 }
 
 export const BadgesAndCertificatesView: React.FC<BadgesAndCertificatesViewProps> = ({
   userProfile,
   onNavigateTab,
+  onLoadDemoUser,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const badgeCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -402,7 +404,7 @@ export const BadgesAndCertificatesView: React.FC<BadgesAndCertificatesViewProps>
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 pt-2">
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
                 {onNavigateTab && (
                   <button
                     onClick={() => {
@@ -415,10 +417,51 @@ export const BadgesAndCertificatesView: React.FC<BadgesAndCertificatesViewProps>
                     <span>Take Module {certType === 'module' ? selectedModuleId : '1'} Assessment Now</span>
                   </button>
                 )}
+
+                {onLoadDemoUser && (
+                  <button
+                    onClick={() => {
+                      playClick();
+                      onLoadDemoUser();
+                    }}
+                    className="px-5 py-2.5 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400/50 text-purple-200 font-extrabold text-xs uppercase tracking-wider flex items-center gap-2 shadow-xl hover:scale-105 active:scale-95 transition"
+                  >
+                    <Sparkles className="w-4 h-4 text-purple-300" />
+                    <span>🎓 Load Demo User (See All Unlocked)</span>
+                  </button>
+                )}
               </div>
             </div>
           )}
         </div>
+
+        {/* Demo User banner for evaluators */}
+        {onLoadDemoUser && !isCurrentCertUnlocked && (
+          <div className="p-4 rounded-xl bg-gradient-to-r from-purple-950/40 via-amber-950/20 to-blue-950/40 border border-purple-500/30 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
+            <div className="flex items-center gap-3 text-center sm:text-left">
+              <span className="text-2xl p-2 rounded-lg bg-purple-500/10 border border-purple-500/20">🎓</span>
+              <div>
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  <span>Evaluator & Recruiter Demo Mode</span>
+                  <span className="text-[10px] font-mono uppercase bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">1-Click Preview</span>
+                </h4>
+                <p className="text-xs text-gray-300">
+                  Want to evaluate the complete credential suite? Load the accredited Demo Graduate profile to see all 6 badges, module certificates, and the Capstone diploma with live QR codes.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                playClick();
+                onLoadDemoUser();
+              }}
+              className="whitespace-nowrap px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg hover:scale-105 active:scale-95 transition"
+            >
+              <span>Load Demo User</span>
+              <Sparkles className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
 
         {/* Certificate Metadata & 1-Click LinkedIn Share */}
         <div className="bg-[#121420] border border-white/5 rounded-xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
