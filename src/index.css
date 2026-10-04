@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-dark: #07080b;
+    --card-dark: #0f1118;
+    --gold-primary: #f59e0b;
+    --gold-glow: rgba(245, 158, 11, 0.2);
+  }
+
+  body {
+    background-color: #07080b;
+    color: #f3f4f6;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Custom scrollbars for FAANG aesthetic */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #090a0f;
+}
+::-webkit-scrollbar-thumb {
+  background: #272a38;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #d97706;
+}
+
+/* Glassmorphism & Gold accents */
+.glass-panel {
+  background: rgba(15, 17, 24, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gold-border-glow {
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  box-shadow: 0 0 20px -5px rgba(245, 158, 11, 0.15);
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #FFF6D6 0%, #F59E0B 50%, #D97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-gradient-btn {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  box-shadow: 0 4px 20px -4px rgba(245, 158, 11, 0.4);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.gold-gradient-btn:hover {
+  background: linear-gradient(135deg, #FBBF24 0%, #EAB308 100%);
+  box-shadow: 0 6px 24px -2px rgba(245, 158, 11, 0.6);
+  transform: translateY(-1px);
+}
+.gold-gradient-btn:active {
+  transform: translateY(1px);
+}
+
+/* Animation utilities */
+@keyframes subtleShimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.shimmer-effect {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer-effect::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.08), transparent);
+  animation: subtleShimmer 3s infinite linear;
+}
+
+/* Spreadsheet Grid Styles */
+.cell-selected {
+  outline: 2px solid #f59e0b !important;
+  outline-offset: -1px;
+  background-color: rgba(245, 158, 11, 0.12) !important;
+  z-index: 10;
+}
+
+.cell-highlight {
+  background-color: rgba(59, 130, 246, 0.12) !important;
+}
+
+.cell-target {
+  box-shadow: inset 0 0 0 2px #10b981 !important;
+  background-color: rgba(16, 185, 129, 0.1) !important;
+}
