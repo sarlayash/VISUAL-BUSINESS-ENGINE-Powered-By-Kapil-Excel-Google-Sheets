@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
+import { LandingPageView } from './components/LandingPageView';
 import { DashboardView } from './components/DashboardView';
 import { SpreadsheetSimulator } from './components/SpreadsheetSimulator';
 import { CurriculumView } from './components/CurriculumView';
@@ -11,19 +12,25 @@ import { LeaderboardView } from './components/LeaderboardView';
 import { AdminDashboard } from './components/AdminDashboard';
 import { MODULES_DATA } from './data/modulesData';
 import { Challenge, IndustryLab, UserProfile } from './types';
-import { loadUserProfile, saveUserProfile, addXpAndProgress } from './utils/storage';
+import {
+  loadUserProfile,
+  saveUserProfile,
+  signInWithGoogle,
+  signOutUser,
+  addXpAndProgress,
+} from './utils/storage';
 import { playClick, playSuccess, playLevelUp } from './utils/soundEffects';
-import { Smartphone, Download, X, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Smartphone, Download, X } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export function App() {
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(loadUserProfile());
   const [activeTab, setActiveTab] = useState<string>('dashboard');
-  const [userProfile, setUserProfile] = useState<UserProfile>(loadUserProfile());
   const [activeChallengeId, setActiveChallengeId] = useState<string>('m1_c1');
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showPwaBanner, setShowPwaBanner] = useState<boolean>(true);
 
-  // Capture PWA beforeinstallprompt event
+  // Capture PWA beforeinstallprompt event for phone installation
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
@@ -40,7 +47,9 @@ export function App() {
 
   const handleInstallPwa = async () => {
     if (!deferredPrompt) {
-      alert('To install Visual Business Engine:\n\n• On Android/Chrome: Tap Chrome menu (⋮) → "Install app" or "Add to Home screen"\n• On iPhone/Safari: Tap Share (⎋) → "Add to Home Screen"');
+      alert(
+        'To install Visual Business Engine:\n\n• On Android/Chrome: Tap Chrome menu (⋮) → "Install app" or "Add to Home screen"\n• On iPhone/Safari: Tap Share (⎋) → "Add to Home Screen"'
+      );
       return;
     }
     deferredPrompt.prompt();
@@ -49,6 +58,26 @@ export function App() {
       setShowPwaBanner(false);
       setDeferredPrompt(null);
     }
+  };
+
+  const handleGoogleSignIn = (name: string, email: string) => {
+    const profile = signInWithGoogle(name, email);
+    setUserProfile(profile);
+    setActiveTab('dashboard');
+    try {
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#F59E0B', '#FBBF24', '#FFFFFF'],
+      });
+    } catch (e) {}
+  };
+
+  const handleSignOut = () => {
+    signOutUser();
+    setUserProfile(null);
+    setActiveTab('landing');
   };
 
   // Find active challenge object
@@ -65,6 +94,7 @@ export function App() {
   // Handle Challenge Passed
   const handleChallengePassed = (challengeId: string, earnedXp: number) => {
     const nextProfile = addXpAndProgress(earnedXp, challengeId);
+    if (!nextProfile) return;
     setUserProfile(nextProfile);
 
     // Check if entire module is complete
@@ -75,16 +105,18 @@ export function App() {
       );
       if (allInModPassed && !nextProfile.completedModules.includes(currentMod.id)) {
         const withMod = addXpAndProgress(200, undefined, currentMod.badgeName, currentMod.id);
-        setUserProfile(withMod);
-        playLevelUp();
-        try {
-          confetti({
-            particleCount: 100,
-            spread: 80,
-            origin: { y: 0.5 },
-            colors: ['#F59E0B', '#FBBF24', '#FFFFFF'],
-          });
-        } catch (e) {}
+        if (withMod) {
+          setUserProfile(withMod);
+          playLevelUp();
+          try {
+            confetti({
+              particleCount: 120,
+              spread: 90,
+              origin: { y: 0.5 },
+              colors: ['#F59E0B', '#FBBF24', '#FFFFFF'],
+            });
+          } catch (e) {}
+        }
       }
     }
   };
@@ -103,7 +135,6 @@ export function App() {
 
   // Launch Simulator with custom Industry Lab dataset
   const handleLaunchSimulatorWithLab = (lab: IndustryLab) => {
-    // Generate ad-hoc challenge matching lab
     const labChallenge: Challenge = {
       id: `lab_${lab.id}`,
       moduleId: 4,
@@ -131,7 +162,12 @@ export function App() {
         },
       ],
       hints: [
-        { level: 1, title: 'Concept', text: `Use mathematical or conditional formulas to answer: ${lab.keyQuestions[0]}`, penaltyXp: 10 },
+        {
+          level: 1,
+          title: 'Concept',
+          text: `Use mathematical or conditional formulas to answer: ${lab.keyQuestions[0]}`,
+          penaltyXp: 10,
+        },
         { level: 2, title: 'Direction', text: `Recommended syntax: ${lab.starterFormulaHint}`, penaltyXp: 20 },
         { level: 3, title: 'Guided', text: `Enter ${lab.starterFormulaHint} in target cell.`, penaltyXp: 30 },
       ],
@@ -141,7 +177,6 @@ export function App() {
       xpReward: 160,
     };
 
-    // Set as custom challenge
     MODULES_DATA[3].challenges.push(labChallenge);
     setActiveChallengeId(labChallenge.id);
     setActiveTab('simulator');
@@ -186,66 +221,76 @@ export function App() {
         }}
         deferredPrompt={deferredPrompt}
         onInstallPwa={handleInstallPwa}
+        onSignOut={handleSignOut}
+        onOpenSignIn={() => setActiveTab('landing')}
       />
 
       {/* Main App Container */}
       <main className="flex-1 flex flex-col">
-        {activeTab === 'dashboard' && (
-          <DashboardView
-            userProfile={userProfile}
-            onNavigateTab={(tab, meta) => {
-              setActiveTab(tab);
-              if (meta?.challengeId) setActiveChallengeId(meta.challengeId);
-            }}
-            onSelectChallenge={(id) => setActiveChallengeId(id)}
-          />
+        {/* If NOT signed in OR on landing tab: Render Landing Page */}
+        {!userProfile || activeTab === 'landing' ? (
+          <LandingPageView onSignIn={handleGoogleSignIn} />
+        ) : (
+          /* When signed in: All content loads dynamically! */
+          <>
+            {activeTab === 'dashboard' && (
+              <DashboardView
+                userProfile={userProfile}
+                onNavigateTab={(tab, meta) => {
+                  setActiveTab(tab);
+                  if (meta?.challengeId) setActiveChallengeId(meta.challengeId);
+                }}
+                onSelectChallenge={(id) => setActiveChallengeId(id)}
+              />
+            )}
+
+            {activeTab === 'simulator' && (
+              <div className="flex-1 flex flex-col h-[calc(100vh-4rem)]">
+                <SpreadsheetSimulator
+                  challenge={currentChallenge}
+                  onChallengePassed={handleChallengePassed}
+                  onNextChallenge={handleNextChallenge}
+                />
+              </div>
+            )}
+
+            {activeTab === 'curriculum' && (
+              <CurriculumView
+                userProfile={userProfile}
+                onSelectChallenge={(id) => setActiveChallengeId(id)}
+                onNavigateTab={setActiveTab}
+              />
+            )}
+
+            {activeTab === 'labs' && (
+              <BusinessLabsView onLaunchSimulatorWithLab={handleLaunchSimulatorWithLab} />
+            )}
+
+            {activeTab === 'capstone' && (
+              <CapstoneView
+                userProfile={userProfile}
+                onUpdateProfile={(p) => {
+                  saveUserProfile(p);
+                  setUserProfile(p);
+                }}
+                onNavigateTab={setActiveTab}
+              />
+            )}
+
+            {activeTab === 'certificates' && (
+              <BadgesAndCertificatesView userProfile={userProfile} />
+            )}
+
+            {activeTab === 'verify' && <VerificationPortal />}
+
+            {activeTab === 'leaderboard' && <LeaderboardView userProfile={userProfile} />}
+
+            {activeTab === 'admin' && <AdminDashboard />}
+          </>
         )}
-
-        {activeTab === 'simulator' && (
-          <div className="flex-1 flex flex-col h-[calc(100vh-4rem)]">
-            <SpreadsheetSimulator
-              challenge={currentChallenge}
-              onChallengePassed={handleChallengePassed}
-              onNextChallenge={handleNextChallenge}
-            />
-          </div>
-        )}
-
-        {activeTab === 'curriculum' && (
-          <CurriculumView
-            userProfile={userProfile}
-            onSelectChallenge={(id) => setActiveChallengeId(id)}
-            onNavigateTab={setActiveTab}
-          />
-        )}
-
-        {activeTab === 'labs' && (
-          <BusinessLabsView onLaunchSimulatorWithLab={handleLaunchSimulatorWithLab} />
-        )}
-
-        {activeTab === 'capstone' && (
-          <CapstoneView
-            userProfile={userProfile}
-            onUpdateProfile={(p) => {
-              saveUserProfile(p);
-              setUserProfile(p);
-            }}
-            onNavigateTab={setActiveTab}
-          />
-        )}
-
-        {activeTab === 'certificates' && (
-          <BadgesAndCertificatesView userProfile={userProfile} />
-        )}
-
-        {activeTab === 'verify' && <VerificationPortal />}
-
-        {activeTab === 'leaderboard' && <LeaderboardView userProfile={userProfile} />}
-
-        {activeTab === 'admin' && <AdminDashboard />}
       </main>
 
-      {/* FOOTER (PRD Page 1, 30, 37, 44) */}
+      {/* FOOTER */}
       <footer className="bg-[#050608] border-t border-white/5 py-8 px-4 text-center text-xs text-gray-500 space-y-2">
         <div className="flex items-center justify-center gap-2 text-gray-400 font-semibold">
           <span className="text-amber-400">SARLAYASH MISSION PRESENTS</span>
@@ -255,11 +300,11 @@ export function App() {
           <span className="text-amber-400">POWERED BY KAPIL</span>
         </div>
         <p className="max-w-2xl mx-auto text-gray-500">
-          "Don't just learn Excel. Build a Business Engine." • 10% Concept + 90% Hands-On • Zero Software Architecture •
-          PWA 100% Offline Enabled for Phones & Desktops.
+          "Don't just learn Excel. Build a Business Engine." • 10% Concept + 90% Hands-On • Zero
+          Software Architecture • PWA 100% Offline Enabled for Phones & Desktops.
         </p>
         <p className="text-[11px] text-gray-600">
-          © 2026 SarlaYash Mission. All business simulations and curriculum certified.
+          © 2026 SarlaYash Mission. All business simulations and curriculum verified.
         </p>
       </footer>
     </div>

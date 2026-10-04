@@ -13,9 +13,10 @@ import {
   CheckCircle2,
   Menu,
   X,
-  Laptop,
   Smartphone,
-  ExternalLink,
+  LogOut,
+  LogIn,
+  Home,
 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { playClick, getMuted, setMuted } from '../utils/soundEffects';
@@ -23,10 +24,12 @@ import { playClick, getMuted, setMuted } from '../utils/soundEffects';
 interface HeaderProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  userProfile: UserProfile;
+  userProfile: UserProfile | null;
   onUpdateProfile: (profile: UserProfile) => void;
   deferredPrompt: any;
   onInstallPwa: () => void;
+  onSignOut?: () => void;
+  onOpenSignIn?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -36,6 +39,8 @@ export const Header: React.FC<HeaderProps> = ({
   onUpdateProfile,
   deferredPrompt,
   onInstallPwa,
+  onSignOut,
+  onOpenSignIn,
 }) => {
   const [isOnline, setIsOnline] = useState<boolean>(true);
   const [soundMuted, setSoundMuted] = useState<boolean>(false);
@@ -84,7 +89,7 @@ export const Header: React.FC<HeaderProps> = ({
             <div
               onClick={() => {
                 playClick();
-                setActiveTab('dashboard');
+                setActiveTab(userProfile ? 'dashboard' : 'landing');
               }}
               className="flex items-center gap-3 cursor-pointer group shrink-0"
             >
@@ -108,29 +113,31 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            {/* DESKTOP NAVIGATION TABS */}
-            <nav className="hidden lg:flex items-center gap-1">
-              {navItems.map((item) => {
-                const isActive = activeTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      playClick();
-                      setActiveTab(item.id);
-                    }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                      isActive
-                        ? 'bg-amber-500/15 text-amber-300 border border-amber-500/40 shadow-sm'
-                        : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    <span>{item.icon}</span>
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
+            {/* DESKTOP NAVIGATION TABS (Shown when logged in) */}
+            {userProfile && (
+              <nav className="hidden lg:flex items-center gap-1">
+                {navItems.map((item) => {
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        playClick();
+                        setActiveTab(item.id);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                        isActive
+                          ? 'bg-amber-500/15 text-amber-300 border border-amber-500/40 shadow-sm'
+                          : 'text-gray-400 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      <span>{item.icon}</span>
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+            )}
 
             {/* RIGHT WIDGETS: ONLINE BADGE, AUDIO, PWA INSTALL, XP & GOOGLE SIGN-IN */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
@@ -168,52 +175,84 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
               )}
 
-              {/* Streak & XP Pill */}
-              <div className="hidden sm:flex items-center gap-2 bg-[#12141e] border border-amber-500/30 px-2.5 py-1 rounded-lg">
-                <div className="flex items-center gap-1 text-amber-400 text-xs font-bold font-mono">
-                  <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500" />
-                  <span>{userProfile.streakDays}d</span>
-                </div>
-                <div className="h-3 w-px bg-white/10"></div>
-                <div className="flex items-center gap-1 text-amber-300 text-xs font-bold font-mono">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>{userProfile.xp.toLocaleString()} XP</span>
-                </div>
-              </div>
+              {/* If user logged in: Streak & XP Pill */}
+              {userProfile ? (
+                <>
+                  <div className="hidden sm:flex items-center gap-2 bg-[#12141e] border border-amber-500/30 px-2.5 py-1 rounded-lg">
+                    <div className="flex items-center gap-1 text-amber-400 text-xs font-bold font-mono">
+                      <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500" />
+                      <span>{userProfile.streakDays}d</span>
+                    </div>
+                    <div className="h-3 w-px bg-white/10"></div>
+                    <div className="flex items-center gap-1 text-amber-300 text-xs font-bold font-mono">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>{userProfile.xp.toLocaleString()} XP</span>
+                    </div>
+                  </div>
 
-              {/* Google Sign-in / Avatar Trigger */}
-              <button
-                onClick={() => {
-                  playClick();
-                  setIsAuthModalOpen(true);
-                }}
-                className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-full bg-[#151722] border border-white/10 hover:border-amber-500/40 transition"
-              >
-                <span className="text-xs font-semibold text-gray-200 hidden sm:inline">
-                  {userProfile.name}
-                </span>
-                <div className="w-7 h-7 rounded-full overflow-hidden border border-amber-400/50 bg-amber-500/20 flex items-center justify-center text-xs font-bold text-amber-300">
-                  {userProfile.avatar ? (
-                    <img src={userProfile.avatar} alt="Profile" className="w-full h-full object-cover" />
-                  ) : (
-                    userProfile.name[0]
+                  {/* Google Profile Drawer Trigger */}
+                  <button
+                    onClick={() => {
+                      playClick();
+                      setIsAuthModalOpen(true);
+                    }}
+                    className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-full bg-[#151722] border border-white/10 hover:border-amber-500/40 transition"
+                  >
+                    <span className="text-xs font-semibold text-gray-200 hidden sm:inline">
+                      {userProfile.name}
+                    </span>
+                    <div className="w-7 h-7 rounded-full overflow-hidden border border-amber-400/50 bg-amber-500/20 flex items-center justify-center text-xs font-bold text-amber-300">
+                      {userProfile.avatar ? (
+                        <img src={userProfile.avatar} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        userProfile.name[0]
+                      )}
+                    </div>
+                  </button>
+
+                  {/* Sign Out Button */}
+                  {onSignOut && (
+                    <button
+                      onClick={() => {
+                        playClick();
+                        onSignOut();
+                      }}
+                      className="p-2 rounded-lg bg-[#141622] hover:bg-red-950/40 text-gray-400 hover:text-red-300 border border-white/5 transition"
+                      title="Sign Out to Landing Page"
+                    >
+                      <LogOut className="w-4 h-4" />
+                    </button>
                   )}
-                </div>
-              </button>
+                </>
+              ) : (
+                /* If NOT logged in: Continue with Google Button in Header */
+                <button
+                  onClick={() => {
+                    playClick();
+                    onOpenSignIn ? onOpenSignIn() : setIsAuthModalOpen(true);
+                  }}
+                  className="px-3.5 py-1.5 rounded-xl gold-gradient-btn text-black font-extrabold text-xs uppercase tracking-wide flex items-center gap-1.5 shadow"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>Google Sign-In</span>
+                </button>
+              )}
 
               {/* Mobile menu toggle */}
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden p-2 rounded-lg bg-[#141622] border border-white/10 text-gray-300 hover:text-white"
-              >
-                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </button>
+              {userProfile && (
+                <button
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="lg:hidden p-2 rounded-lg bg-[#141622] border border-white/10 text-gray-300 hover:text-white"
+                >
+                  {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                </button>
+              )}
             </div>
           </div>
         </div>
 
         {/* MOBILE NAVIGATION DRAWER */}
-        {isMobileMenuOpen && (
+        {userProfile && isMobileMenuOpen && (
           <div className="lg:hidden bg-[#0c0d14] border-b border-amber-500/20 px-4 py-3 space-y-2 animate-fade-in">
             <div className="flex items-center justify-between pb-2 border-b border-white/5">
               <div className="flex items-center gap-2">
@@ -244,23 +283,23 @@ export const Header: React.FC<HeaderProps> = ({
               ))}
             </div>
 
-            {deferredPrompt && (
+            {onSignOut && (
               <button
                 onClick={() => {
-                  onInstallPwa();
+                  onSignOut();
                   setIsMobileMenuOpen(false);
                 }}
-                className="w-full mt-2 py-2.5 rounded-lg gold-gradient-btn text-black font-bold text-xs flex items-center justify-center gap-2"
+                className="w-full mt-2 py-2 rounded-lg bg-red-950/30 text-red-300 border border-red-500/30 text-xs font-bold flex items-center justify-center gap-2"
               >
-                <Smartphone className="w-4 h-4" /> Install App to Phone Home Screen
+                <LogOut className="w-4 h-4" /> Sign Out
               </button>
             )}
           </div>
         )}
       </header>
 
-      {/* ================= GOOGLE SIGN-IN MODAL (PRD Section 6) ================= */}
-      {isAuthModalOpen && (
+      {/* Profile Details Modal */}
+      {userProfile && isAuthModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
           <div className="bg-[#0f1118] border border-amber-500/30 w-full max-w-md rounded-2xl p-6 shadow-2xl relative">
             <button
@@ -274,9 +313,9 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg text-black font-extrabold text-xl">
                 V
               </div>
-              <h3 className="text-xl font-bold text-white">Google Sign-In</h3>
+              <h3 className="text-xl font-bold text-white">Learner Account</h3>
               <p className="text-xs text-gray-400 mt-1">
-                Visual Business Engine • 100% Browser Simulation Portal
+                Visual Business Engine • 100% In-Browser Simulation Portal
               </p>
             </div>
 
@@ -299,7 +338,7 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            {/* Quick Profile Switcher / Customizer */}
+            {/* Profile Customizer */}
             <div className="space-y-3 mb-6">
               <div>
                 <label className="text-xs text-gray-400 block mb-1">Display Name (Printed on Certificate):</label>
@@ -321,51 +360,28 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            {/* Google Authentication One-Tap style buttons */}
-            <div className="space-y-2">
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => {
                   playClick();
                   setIsAuthModalOpen(false);
                 }}
-                className="w-full py-2.5 rounded-xl bg-white hover:bg-gray-100 text-gray-800 font-semibold text-sm flex items-center justify-center gap-3 shadow transition active:scale-95"
+                className="flex-1 py-2.5 rounded-xl gold-gradient-btn text-black font-extrabold text-xs uppercase"
               >
-                <svg className="w-5 h-5" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                  />
-                </svg>
-                Continue as {userProfile.name}
+                Save Changes
               </button>
-
-              <button
-                onClick={() => {
-                  playClick();
-                  onUpdateProfile({
-                    ...userProfile,
-                    id: 'usr_guest_' + Date.now(),
-                    name: 'Business Scholar',
-                    email: 'scholar@sarlayash.org',
-                  });
-                  setIsAuthModalOpen(false);
-                }}
-                className="w-full py-2.5 rounded-xl bg-[#171924] hover:bg-white/10 text-gray-300 font-medium text-xs border border-white/10 transition"
-              >
-                Switch to Guest Learner
-              </button>
+              {onSignOut && (
+                <button
+                  onClick={() => {
+                    playClick();
+                    setIsAuthModalOpen(false);
+                    onSignOut();
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-red-950/40 text-red-300 border border-red-500/30 text-xs font-bold"
+                >
+                  Sign Out
+                </button>
+              )}
             </div>
           </div>
         </div>

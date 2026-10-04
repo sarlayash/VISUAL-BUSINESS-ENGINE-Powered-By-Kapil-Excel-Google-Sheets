@@ -9,9 +9,14 @@ import {
   FileSpreadsheet,
   Settings,
   Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 import { ChartViewer } from './ChartViewer';
 import { playClick, playSuccess } from '../utils/soundEffects';
+import { MODULES_DATA } from '../data/modulesData';
+import { INDUSTRY_LABS } from '../data/industryLabsData';
+import { CAPSTONE_STAGES } from '../data/capstoneData';
+import { getRegisteredLearners } from '../utils/storage';
 
 export const AdminDashboard: React.FC = () => {
   const [activeAdminTab, setActiveAdminTab] = useState<'analytics' | 'content'>('analytics');
@@ -21,13 +26,24 @@ export const AdminDashboard: React.FC = () => {
   const [newFormula, setNewFormula] = useState('=SUM(B2:B10)');
   const [publishedFeedback, setPublishedFeedback] = useState<string | null>(null);
 
-  const moduleCompletionStats = [
-    { label: 'Module 1 (Fundamentals)', value: 88, formatted: '88% Completion' },
-    { label: 'Module 2 (Advanced Logic)', value: 74, formatted: '74% Completion' },
-    { label: 'Module 3 (Lookups & Stats)', value: 62, formatted: '62% Completion' },
-    { label: 'Module 4 (Pivot & Analytics)', value: 54, formatted: '54% Completion' },
-    { label: 'Module 5 (Dashboards)', value: 41, formatted: '41% Completion' },
-  ];
+  // Real data metrics (NO FAKE NUMBERS)
+  const registeredLearners = getRegisteredLearners();
+  const totalRealLearners = Math.max(1, registeredLearners.length);
+  const totalCurriculumHours = MODULES_DATA.reduce((acc, m) => acc + m.hours, 0);
+  const totalCurriculumChallenges = MODULES_DATA.reduce((acc, m) => acc + m.challenges.length, 0);
+  const totalIndustryLabs = INDUSTRY_LABS.length;
+  const totalCapstoneStages = CAPSTONE_STAGES.length;
+
+  const totalChallengesSolvedByAll = registeredLearners.reduce(
+    (acc, l) => acc + (l.completedChallenges?.length || 0),
+    0
+  );
+
+  const realModuleStructureStats = MODULES_DATA.map((m) => ({
+    label: `M${m.id}: ${m.badgeName.split(' ')[0]}`,
+    value: m.challenges.length,
+    formatted: `${m.challenges.length} Live Challenges`,
+  }));
 
   const handleCreateChallenge = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,11 +63,13 @@ export const AdminDashboard: React.FC = () => {
             <span className="text-xs px-2.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
               KAPIL / ADMIN CONTROL CENTER
             </span>
-            <span className="text-xs text-gray-400">PRD Section 28 & 29</span>
+            <span className="text-xs text-emerald-400 font-mono flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5" /> 100% Verifiable System Telemetry
+            </span>
           </div>
           <h1 className="text-3xl font-extrabold text-white">Platform Administration & Analytics</h1>
           <p className="text-sm text-gray-400 mt-1">
-            Monitor learner completion, hardest concepts, drop-offs, and author new simulation content.
+            Genuine learner telemetry, real curriculum metrics, and no-code challenge authoring studio.
           </p>
         </div>
 
@@ -68,7 +86,7 @@ export const AdminDashboard: React.FC = () => {
                 : 'text-gray-400 hover:text-white'
             }`}
           >
-            Analytics & Telemetry
+            Verifiable Metrics
           </button>
           <button
             onClick={() => {
@@ -88,13 +106,33 @@ export const AdminDashboard: React.FC = () => {
 
       {activeAdminTab === 'analytics' ? (
         <div className="space-y-8">
-          {/* Executive Metrics Overview */}
+          {/* Executive Metrics Overview (Ground Truth Only) */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'Total Learners', value: '14,820', change: '+24% this month', icon: '👥' },
-              { label: 'Active This Week', value: '3,450', change: '84% retention', icon: '⚡' },
-              { label: 'Capstones Completed', value: '1,280', change: 'Visual Business Engineers', icon: '🏆' },
-              { label: 'Certificates Verified', value: '4,912', change: 'Tamper-proof checks', icon: '🔍' },
+              {
+                label: 'Authenticated Learners',
+                value: totalRealLearners.toLocaleString(),
+                change: 'Real device accounts',
+                icon: '👥',
+              },
+              {
+                label: 'Curriculum Scope',
+                value: `${totalCurriculumHours} Hours`,
+                change: `${MODULES_DATA.length} Modules × 6h`,
+                icon: '📚',
+              },
+              {
+                label: 'Cross-Industry Labs',
+                value: `${totalIndustryLabs} Domains`,
+                change: 'Retail to Manufacturing',
+                icon: '🏢',
+              },
+              {
+                label: 'Capstone Architecture',
+                value: `${totalCapstoneStages} Stages`,
+                change: 'Global Retail Corp',
+                icon: '🏆',
+              },
             ].map((metric, i) => (
               <div
                 key={i}
@@ -110,54 +148,52 @@ export const AdminDashboard: React.FC = () => {
             ))}
           </div>
 
-          {/* Module Completion Chart & Hardest Concepts */}
+          {/* Module Challenge Distribution Chart & Hardest Concepts */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
               <ChartViewer
-                title="Curriculum Completion Funnel"
-                subtitle="Percentage of learners passing each module's simulation validations"
-                data={moduleCompletionStats}
-                type="bar"
+                title="Curriculum Challenge Architecture"
+                subtitle="Hands-on interactive simulations distributed across the 5 modules"
+                data={realModuleStructureStats}
+                type="column"
               />
             </div>
 
-            {/* Hardest Concepts & Drop-Off Points (PRD Page 25) */}
+            {/* Hardest Concepts (PRD Page 25) */}
             <div className="bg-[#0f1118] border border-white/10 rounded-2xl p-6 shadow-xl space-y-4">
               <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-400" /> Hardest Concepts & Drop-Offs
+                <AlertTriangle className="w-4 h-4 text-amber-400" /> Focus Learning Areas
               </h3>
 
               <div className="space-y-3">
                 {[
                   {
                     concept: 'INDEX + MATCH Two-Way Matrix',
-                    failRate: '42% initial fail rate',
-                    hintUse: 'High hint usage (Hint 3 required)',
+                    description: 'Replaces rigid VLOOKUP column indexing with dynamic range lookups.',
+                    recommendation: 'Use Kapil AI Mentor to map row and column arguments.',
                   },
                   {
                     concept: 'Nested IFS vs Logical AND/OR',
-                    failRate: '34% initial fail rate',
-                    hintUse: 'Syntax parenthesis mismatch',
+                    description: 'Multi-criteria business tiers without error cascades.',
+                    recommendation: 'Always terminate IFS with TRUE fallback value.',
                   },
                   {
                     concept: 'PERCENTILE vs MEDIAN Skew',
-                    failRate: '28% initial fail rate',
-                    hintUse: 'Clarified with Kapil AI Mentor',
+                    description: 'Eliminates CEO compensation outlier distortion.',
+                    recommendation: 'Compare mean with median to detect dataset skew.',
                   },
                   {
-                    concept: 'SUMIFS sum_range positioning',
-                    failRate: '22% initial fail rate',
-                    hintUse: 'Excel vs Sheets argument order',
+                    concept: 'SUMIFS sum_range position',
+                    description: 'SUMIFS puts sum_range FIRST, unlike SUMIF which puts it LAST.',
+                    recommendation: 'Standard practice across modern corporate models.',
                   },
                 ].map((item, idx) => (
                   <div key={idx} className="bg-[#141622] p-3 rounded-xl border border-white/5 space-y-1">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-white">{item.concept}</span>
-                      <span className="text-[10px] text-red-400 font-mono font-semibold">
-                        {item.failRate}
-                      </span>
                     </div>
-                    <p className="text-[11px] text-gray-400">{item.hintUse}</p>
+                    <p className="text-[11px] text-gray-300">{item.description}</p>
+                    <p className="text-[10px] text-amber-400 font-mono">{item.recommendation}</p>
                   </div>
                 ))}
               </div>

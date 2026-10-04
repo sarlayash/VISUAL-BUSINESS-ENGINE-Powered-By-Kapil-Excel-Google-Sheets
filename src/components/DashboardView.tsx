@@ -121,17 +121,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* ================= LEARNER STATS GRID (PRD Page 6) ================= */}
+      {/* ================= LEARNER STATS GRID (Ground Truth Only) ================= */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         {[
           { label: 'Modules Completed', value: `${userProfile.completedModules.length}/5`, icon: '📚' },
           { label: 'Challenges Solved', value: `${solvedCount}/${totalChallenges}`, icon: '🎯' },
-          { label: 'Simulations Completed', value: '31', icon: '⚡' },
-          { label: 'Business Cases', value: '18', icon: '🏢' },
+          { label: 'Active XP Earned', value: `${userProfile.xp.toLocaleString()} XP`, icon: '⚡' },
+          { label: 'Industry Labs', value: '10 Domains', icon: '🏢' },
           { label: 'Badges Earned', value: `${userProfile.earnedBadges.length}/6`, icon: '🥇' },
           {
             label: 'Capstone Status',
-            value: userProfile.capstoneCompleted ? 'Completed' : 'Stage 1 In Progress',
+            value: userProfile.capstoneCompleted ? 'Completed' : `Stage ${userProfile.capstoneStage || 1} of 9`,
             icon: '🏆',
           },
         ].map((stat, idx) => (

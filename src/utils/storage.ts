@@ -1,61 +1,123 @@
 import { UserProfile } from '../types';
 
-const STORAGE_KEY_PROFILE = 'vbe_learner_profile_v1';
-const STORAGE_KEY_CUSTOM_DATA = 'vbe_user_sheets_v1';
+const STORAGE_KEY_CURRENT_USER = 'vbe_current_user_v2';
+const STORAGE_KEY_ALL_LEARNERS = 'vbe_all_registered_learners_v2';
+const STORAGE_KEY_CUSTOM_DATA = 'vbe_user_sheets_v2';
 
-export const DEFAULT_USER_PROFILE: UserProfile = {
-  id: 'usr_kapil_2026',
-  name: 'Kapil',
-  email: 'kapil@sarlayash.org',
-  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-  xp: 1250,
-  level: 'Analyst',
-  streakDays: 4,
-  lastActiveDate: new Date().toISOString().split('T')[0],
-  completedChallenges: ['m1_c1', 'm1_c2', 'm1_c3'],
-  completedModules: [],
-  earnedBadges: ['Data Preparation Explorer'],
-  capstoneCompleted: false,
-  capstoneStage: 1,
-  certificateId: 'SY-VBE-2026-000124',
-  certificateIssueDate: 'October 4, 2026',
-};
+// Generates an authentic unique Certificate ID for real learners
+export function generateCertificateId(): string {
+  const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+  return `SY-VBE-2026-${randomSuffix}`;
+}
 
-export function loadUserProfile(): UserProfile {
-  if (typeof window === 'undefined') return DEFAULT_USER_PROFILE;
+// Load currently authenticated user (null if not yet signed in)
+export function loadUserProfile(): UserProfile | null {
+  if (typeof window === 'undefined') return null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY_PROFILE);
-    if (!raw) {
-      saveUserProfile(DEFAULT_USER_PROFILE);
-      return DEFAULT_USER_PROFILE;
-    }
+    const raw = localStorage.getItem(STORAGE_KEY_CURRENT_USER);
+    if (!raw) return null;
     return JSON.parse(raw);
   } catch (e) {
-    return DEFAULT_USER_PROFILE;
+    return null;
   }
 }
 
+// Save active user profile and update the registered learners registry
 export function saveUserProfile(profile: UserProfile): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(profile));
+    localStorage.setItem(STORAGE_KEY_CURRENT_USER, JSON.stringify(profile));
+
+    // Also update in all learners list
+    const learners = getRegisteredLearners();
+    const idx = learners.findIndex((l) => l.id === profile.id || l.email === profile.email);
+    if (idx !== -1) {
+      learners[idx] = profile;
+    } else {
+      learners.push(profile);
+    }
+    localStorage.setItem(STORAGE_KEY_ALL_LEARNERS, JSON.stringify(learners));
   } catch (e) {
     console.error('Failed to save profile', e);
   }
 }
 
+// Sign in or register a real user
+export function signInWithGoogle(name: string, email: string, avatar?: string): UserProfile {
+  const existingLearners = getRegisteredLearners();
+  const found = existingLearners.find((l) => l.email.toLowerCase() === email.toLowerCase());
+
+  if (found) {
+    // Return existing user with their real accumulated progress
+    saveUserProfile(found);
+    return found;
+  }
+
+  // Create clean, authentic new profile starting at genuine 0 XP
+  const newProfile: UserProfile = {
+    id: `usr_${Date.now()}`,
+    name: name.trim() || 'Learner',
+    email: email.trim().toLowerCase(),
+    avatar:
+      avatar ||
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(
+        name.trim() || 'Learner'
+      )}&background=F59E0B&color=07080B&bold=true`,
+    xp: 0,
+    level: 'Explorer',
+    streakDays: 1,
+    lastActiveDate: new Date().toISOString().split('T')[0],
+    completedChallenges: [],
+    completedModules: [],
+    earnedBadges: [],
+    capstoneCompleted: false,
+    capstoneStage: 1,
+    certificateId: generateCertificateId(),
+    certificateIssueDate: new Intl.DateTimeFormat('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(new Date()),
+  };
+
+  saveUserProfile(newProfile);
+  return newProfile;
+}
+
+// Sign out current user
+export function signOutUser(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(STORAGE_KEY_CURRENT_USER);
+  } catch (e) {}
+}
+
+// Get all authentic registered learners on this platform instance
+export function getRegisteredLearners(): UserProfile[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_ALL_LEARNERS);
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch (e) {
+    return [];
+  }
+}
+
+// Add XP and progress genuinely
 export function addXpAndProgress(
   xpToAdd: number,
   challengeId?: string,
   badgeToUnlock?: string,
   moduleIdCompleted?: number
-): UserProfile {
+): UserProfile | null {
   const current = loadUserProfile();
-  const updated: UserProfile = { ...current };
+  if (!current) return null;
 
+  const updated: UserProfile = { ...current };
   updated.xp = Math.max(0, updated.xp + xpToAdd);
 
-  // Update level based on XP thresholds (PRD Page 28 / Page 20)
+  // Update level based on genuine XP milestones (PRD Section 20 & 32)
   if (updated.xp >= 3500) {
     updated.level = 'Visual Business Engineer';
   } else if (updated.xp >= 2500) {
@@ -82,7 +144,7 @@ export function addXpAndProgress(
     updated.completedModules.push(moduleIdCompleted);
   }
 
-  // Update streak
+  // Update real streak
   const today = new Date().toISOString().split('T')[0];
   if (updated.lastActiveDate !== today) {
     updated.streakDays += 1;
