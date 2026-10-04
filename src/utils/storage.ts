@@ -251,3 +251,145 @@ export function loadCustomSheet(sheetKey: string): any | null {
     return null;
   }
 }
+
+// ================= USER AGENCY: MARK AS COMPLETE & ACKNOWLEDGE =================
+
+export function toggleChallengeComplete(challengeId: string): UserProfile | null {
+  const current = loadUserProfile();
+  if (!current) return null;
+  const updated = { ...current };
+  const list = [...(updated.completedChallenges || [])];
+  const idx = list.indexOf(challengeId);
+  if (idx !== -1) {
+    list.splice(idx, 1);
+  } else {
+    list.push(challengeId);
+    updated.xp += 100;
+  }
+  updated.completedChallenges = list;
+  saveUserProfile(updated);
+  return updated;
+}
+
+export function toggleLabComplete(labId: string): UserProfile | null {
+  const current = loadUserProfile();
+  if (!current) return null;
+  const updated = { ...current };
+  const list = [...(updated.completedLabs || [])];
+  const idx = list.indexOf(labId);
+  if (idx !== -1) {
+    list.splice(idx, 1);
+  } else {
+    list.push(labId);
+    updated.xp += 150;
+  }
+  updated.completedLabs = list;
+  saveUserProfile(updated);
+  return updated;
+}
+
+export function toggleCapstoneStageComplete(stageNumber: number): UserProfile | null {
+  const current = loadUserProfile();
+  if (!current) return null;
+  const updated = { ...current };
+  const list = [...(updated.completedCapstoneStages || [])];
+  const idx = list.indexOf(stageNumber);
+  if (idx !== -1) {
+    list.splice(idx, 1);
+  } else {
+    list.push(stageNumber);
+    updated.xp += 200;
+  }
+  updated.completedCapstoneStages = list;
+  if (list.length >= 9) {
+    updated.capstoneCompleted = true;
+  }
+  saveUserProfile(updated);
+  return updated;
+}
+
+export function toggleSectionComplete(sectionId: string): UserProfile | null {
+  const current = loadUserProfile();
+  if (!current) return null;
+  const updated = { ...current };
+  const list = [...(updated.completedSections || [])];
+  const idx = list.indexOf(sectionId);
+  if (idx !== -1) {
+    list.splice(idx, 1);
+  } else {
+    list.push(sectionId);
+    updated.xp += 50;
+  }
+  updated.completedSections = list;
+  saveUserProfile(updated);
+  return updated;
+}
+
+export function toggleModuleComplete(moduleId: number): UserProfile | null {
+  const current = loadUserProfile();
+  if (!current) return null;
+  const updated = { ...current };
+  const list = [...(updated.completedModules || [])];
+  const idx = list.indexOf(moduleId);
+  if (idx !== -1) {
+    list.splice(idx, 1);
+  } else {
+    list.push(moduleId);
+    updated.xp += 250;
+  }
+  updated.completedModules = list;
+  saveUserProfile(updated);
+  return updated;
+}
+
+export function toggleKnowledgeByteAcknowledged(byteId: string): UserProfile | null {
+  const current = loadUserProfile();
+  if (!current) return null;
+  const updated = { ...current };
+  const list = [...(updated.acknowledgedBytes || [])];
+  const idx = list.indexOf(byteId);
+  if (idx !== -1) {
+    list.splice(idx, 1);
+  } else {
+    list.push(byteId);
+    updated.xp += 30;
+  }
+  updated.acknowledgedBytes = list;
+  saveUserProfile(updated);
+  return updated;
+}
+
+export function acknowledgeAllKnowledgeBytes(allByteIds: string[]): UserProfile | null {
+  const current = loadUserProfile();
+  if (!current) return null;
+  const updated = { ...current };
+  const existing = new Set(updated.acknowledgedBytes || []);
+  let newlyAdded = 0;
+  allByteIds.forEach((id) => {
+    if (!existing.has(id)) {
+      existing.add(id);
+      newlyAdded++;
+    }
+  });
+  updated.acknowledgedBytes = Array.from(existing);
+  updated.xp += newlyAdded * 30;
+  saveUserProfile(updated);
+  return updated;
+}
+
+export function markAllModuleItemsComplete(moduleId: number, challengeIds: string[]): UserProfile | null {
+  const current = loadUserProfile();
+  if (!current) return null;
+  const updated = { ...current };
+  const challengeSet = new Set(updated.completedChallenges || []);
+  challengeIds.forEach((id) => challengeSet.add(id));
+  updated.completedChallenges = Array.from(challengeSet);
+
+  if (!updated.completedModules.includes(moduleId)) {
+    updated.completedModules.push(moduleId);
+  }
+  updated.xp += 300;
+  saveUserProfile(updated);
+  return updated;
+}
+

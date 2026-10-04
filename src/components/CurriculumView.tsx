@@ -12,21 +12,54 @@ import {
 } from 'lucide-react';
 import { MODULES_DATA } from '../data/modulesData';
 import { UserProfile } from '../types';
-import { playClick } from '../utils/soundEffects';
+import {
+  toggleChallengeComplete,
+  markAllModuleItemsComplete,
+  toggleSectionComplete,
+} from '../utils/storage';
+import { playClick, playSuccess } from '../utils/soundEffects';
 
 interface CurriculumViewProps {
   userProfile: UserProfile;
+  onUpdateProfile?: (profile: UserProfile) => void;
   onSelectChallenge: (challengeId: string) => void;
   onNavigateTab: (tab: string) => void;
 }
 
 export const CurriculumView: React.FC<CurriculumViewProps> = ({
   userProfile,
+  onUpdateProfile,
   onSelectChallenge,
   onNavigateTab,
 }) => {
   const [selectedModuleId, setSelectedModuleId] = useState<number>(1);
   const activeModule = MODULES_DATA.find((m) => m.id === selectedModuleId) || MODULES_DATA[0];
+
+  const handleToggleChallenge = (challengeId: string) => {
+    playClick();
+    const updated = toggleChallengeComplete(challengeId);
+    if (updated && onUpdateProfile) {
+      onUpdateProfile(updated);
+    }
+  };
+
+  const handleMarkAllModuleComplete = () => {
+    playSuccess();
+    const challengeIds = activeModule.challenges.map((c) => c.id);
+    const updated = markAllModuleItemsComplete(activeModule.id, challengeIds);
+    if (updated && onUpdateProfile) {
+      onUpdateProfile(updated);
+    }
+  };
+
+  const handleToggleSection = (sectionTopic: string) => {
+    playClick();
+    const sectionId = `sec_${activeModule.id}_${sectionTopic.substring(0, 15).replace(/\s+/g, '_')}`;
+    const updated = toggleSectionComplete(sectionId);
+    if (updated && onUpdateProfile) {
+      onUpdateProfile(updated);
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
@@ -115,12 +148,26 @@ export const CurriculumView: React.FC<CurriculumViewProps> = ({
               <BookOpen className="w-4 h-4 text-amber-400" /> Core Concepts (10%)
             </h3>
             <ul className="space-y-2.5">
-              {activeModule.topics.map((topic, i) => (
-                <li key={i} className="text-xs text-gray-300 flex items-start gap-2.5 leading-relaxed">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
-                  <span>{topic}</span>
-                </li>
-              ))}
+              {activeModule.topics.map((topic, i) => {
+                const sectionId = `sec_${activeModule.id}_${topic.substring(0, 15).replace(/\s+/g, '_')}`;
+                const isSecDone = userProfile.completedSections?.includes(sectionId);
+                return (
+                  <li key={i} className="text-xs text-gray-300 flex items-start gap-2.5 leading-relaxed group">
+                    <button
+                      onClick={() => handleToggleSection(topic)}
+                      className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center shrink-0 transition ${
+                        isSecDone
+                          ? 'bg-emerald-500 border-emerald-400 text-black'
+                          : 'border-white/20 hover:border-amber-400 text-transparent'
+                      }`}
+                      title={isSecDone ? 'Mark topic as incomplete' : 'Mark topic as complete'}
+                    >
+                      <CheckCircle2 className="w-3 h-3 stroke-[3]" />
+                    </button>
+                    <span className={isSecDone ? 'line-through text-gray-500' : ''}>{topic}</span>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         </div>
@@ -129,13 +176,23 @@ export const CurriculumView: React.FC<CurriculumViewProps> = ({
         <div className="lg:col-span-2 space-y-6">
           {/* Hands-on Challenges List */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-amber-400" /> Hands-On Simulation Challenges (90%)
               </h3>
-              <span className="text-xs text-gray-400">
-                {activeModule.challenges.length} Practical Labs
-              </span>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleMarkAllModuleComplete}
+                  className="text-xs px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30 flex items-center gap-1.5 transition"
+                  title="Mark all challenges in this module as complete"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Mark All Complete</span>
+                </button>
+                <span className="text-xs text-gray-400">
+                  {activeModule.challenges.length} Practical Labs
+                </span>
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -174,10 +231,22 @@ export const CurriculumView: React.FC<CurriculumViewProps> = ({
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
                       <span className="text-xs text-amber-400 font-mono font-bold">
                         +{chal.xpReward} XP
                       </span>
+                      <button
+                        onClick={() => handleToggleChallenge(chal.id)}
+                        className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition ${
+                          isPassed
+                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
+                            : 'bg-white/5 text-gray-300 border-white/10 hover:border-white/30 hover:text-white'
+                        }`}
+                        title={isPassed ? 'Mark as Incomplete' : 'Mark as Complete'}
+                      >
+                        <CheckCircle2 className={`w-3.5 h-3.5 ${isPassed ? 'text-emerald-400' : 'text-gray-400'}`} />
+                        <span>{isPassed ? 'Completed' : 'Mark Complete'}</span>
+                      </button>
                       <button
                         onClick={() => {
                           playClick();

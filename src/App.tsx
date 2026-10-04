@@ -12,6 +12,9 @@ import { LeaderboardView } from './components/LeaderboardView';
 import { AdminDashboard } from './components/AdminDashboard';
 import { InbuiltFunctionLab } from './components/InbuiltFunctionLab';
 import { AssessmentsView } from './components/AssessmentsView';
+import { PivotAndChartsSimulator } from './components/PivotAndChartsSimulator';
+import { MacroSimulator } from './components/MacroSimulator';
+import { KnowledgeBytesView } from './components/KnowledgeBytesView';
 import { MODULES_DATA } from './data/modulesData';
 import { Challenge, IndustryLab, UserProfile } from './types';
 import {
@@ -329,16 +332,45 @@ export function App() {
               />
             )}
 
+            {activeTab === 'pivots' && (
+              <PivotAndChartsSimulator onTryInIde={handleTryInIde} />
+            )}
+
+            {activeTab === 'macros' && (
+              <MacroSimulator />
+            )}
+
+            {activeTab === 'knowledge' && (
+              <KnowledgeBytesView
+                userProfile={userProfile}
+                onUpdateProfile={(p) => {
+                  saveUserProfile(p);
+                  setUserProfile(p);
+                }}
+              />
+            )}
+
             {activeTab === 'curriculum' && (
               <CurriculumView
                 userProfile={userProfile}
+                onUpdateProfile={(p) => {
+                  saveUserProfile(p);
+                  setUserProfile(p);
+                }}
                 onSelectChallenge={(id) => setActiveChallengeId(id)}
                 onNavigateTab={setActiveTab}
               />
             )}
 
             {activeTab === 'labs' && (
-              <BusinessLabsView onLaunchSimulatorWithLab={handleLaunchSimulatorWithLab} />
+              <BusinessLabsView
+                userProfile={userProfile}
+                onUpdateProfile={(p) => {
+                  saveUserProfile(p);
+                  setUserProfile(p);
+                }}
+                onLaunchSimulatorWithLab={handleLaunchSimulatorWithLab}
+              />
             )}
 
             {activeTab === 'capstone' && (

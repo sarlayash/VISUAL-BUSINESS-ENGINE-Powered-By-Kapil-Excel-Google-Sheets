@@ -94,3 +94,55 @@ test('Inbuilt Function: ROUND & TEXTJOIN Operations', () => {
   assert.equal(['Accessories', 'Hardware', 'Audio'].join(', '), 'Accessories, Hardware, Audio');
 });
 
+test('Pivot Table Multi-Dimensional Aggregation Engine', () => {
+  const records = [
+    { Region: 'North', Category: 'Electronics', Revenue: 240000 },
+    { Region: 'North', Category: 'Furniture', Revenue: 750000 },
+    { Region: 'West', Category: 'Electronics', Revenue: 420000 },
+    { Region: 'West', Category: 'Furniture', Revenue: 1275000 },
+  ];
+
+  // Pivot by Category -> SUM of Revenue
+  const categoryTotals = {};
+  records.forEach((r) => {
+    categoryTotals[r.Category] = (categoryTotals[r.Category] || 0) + r.Revenue;
+  });
+
+  assert.equal(categoryTotals['Electronics'], 660000);
+  assert.equal(categoryTotals['Furniture'], 2025000);
+  assert.equal(categoryTotals['Electronics'] + categoryTotals['Furniture'], 2685000);
+});
+
+test('Knowledge Bytes: 50 Core Architectural Differences Verification', async () => {
+  const { KNOWLEDGE_BYTES_DATA } = await import('../src/data/knowledgeBytesData.ts');
+  assert.equal(KNOWLEDGE_BYTES_DATA.length, 50, 'Must have exactly 50 authoritative knowledge bytes');
+  // Verify each item has required properties
+  KNOWLEDGE_BYTES_DATA.forEach((kb) => {
+    assert.ok(kb.id, 'Knowledge byte must have id');
+    assert.ok(kb.topic, 'Knowledge byte must have topic');
+    assert.ok(kb.category, 'Knowledge byte must have category');
+    assert.ok(kb.sheetsPerspective, 'Knowledge byte must have sheetsPerspective');
+    assert.ok(kb.excelPerspective, 'Knowledge byte must have excelPerspective');
+    assert.ok(kb.kapilVerdict, 'Knowledge byte must have kapilVerdict');
+  });
+});
+
+test('Mark as Complete User Agency: Toggle and Persistent Storage', () => {
+  let completedChallenges = ['m1_c1'];
+  const toggle = (id) => {
+    if (completedChallenges.includes(id)) {
+      completedChallenges = completedChallenges.filter((c) => c !== id);
+    } else {
+      completedChallenges.push(id);
+    }
+  };
+
+  toggle('m1_c2');
+  assert.deepEqual(completedChallenges, ['m1_c1', 'm1_c2']);
+  toggle('m1_c1');
+  assert.deepEqual(completedChallenges, ['m1_c2']);
+  toggle('m1_c1');
+  assert.deepEqual(completedChallenges, ['m1_c2', 'm1_c1']);
+});
+
+

@@ -15,6 +15,9 @@ import {
   ExternalLink,
   Clock,
   Code,
+  BarChart2,
+  Terminal,
+  Lightbulb,
 } from 'lucide-react';
 import { UserProfile, ModuleInfo } from '../types';
 import { MODULES_DATA } from '../data/modulesData';
@@ -213,6 +216,98 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             className="w-full py-2.5 rounded-xl gold-gradient-btn text-black text-xs font-extrabold uppercase tracking-wide flex items-center justify-center gap-2 shadow-lg transition active:scale-95"
           >
             <span>Take Module Assessments (Mocks)</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+
+      {/* ================= NEW SIMULATORS & KNOWLEDGE SUITE ================= */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Pivot Tables & Charts Simulator */}
+        <div className="bg-[#0f111a] border border-amber-500/20 hover:border-amber-400/50 rounded-2xl p-5 shadow-xl flex flex-col justify-between space-y-4 transition group">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20 font-bold">
+                MULTI-DIMENSIONAL BI
+              </span>
+              <span className="text-xs text-amber-400 font-mono">Real-time Slicers</span>
+            </div>
+            <h3 className="text-base font-bold text-white flex items-center gap-2 group-hover:text-amber-300 transition">
+              <BarChart2 className="w-4 h-4 text-amber-400" />
+              Pivot Tables & Charts Simulator
+            </h3>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              Build cross-tabulated matrix summaries (Rows, Columns, Values, Aggregations), slice by Region/Quarter, and visualize via Column, Bar, Line, or Donut Pivot Charts.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              playClick();
+              onNavigateTab('pivots');
+            }}
+            className="w-full py-2 rounded-xl bg-white/5 hover:bg-amber-500/20 text-gray-300 hover:text-amber-300 border border-white/10 hover:border-amber-500/30 text-xs font-bold flex items-center justify-center gap-1.5 transition"
+          >
+            <span>Launch Pivot & Charts Engine</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* Macros & VBA Sandbox Simulator */}
+        <div className="bg-[#0f111a] border border-amber-500/20 hover:border-amber-400/50 rounded-2xl p-5 shadow-xl flex flex-col justify-between space-y-4 transition group">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20 font-bold">
+                ENTERPRISE CODE
+              </span>
+              <span className="text-xs text-amber-400 font-mono">VBA vs Apps Script</span>
+            </div>
+            <h3 className="text-base font-bold text-white flex items-center gap-2 group-hover:text-amber-300 transition">
+              <Terminal className="w-4 h-4 text-amber-400" />
+              Macros & Automation Simulator
+            </h3>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              Step through live macro simulations: automated data cleansing, payroll tax calculators, and email dispatchers. Compare Excel VBA and Google Apps Script side-by-side.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              playClick();
+              onNavigateTab('macros');
+            }}
+            className="w-full py-2 rounded-xl bg-white/5 hover:bg-amber-500/20 text-gray-300 hover:text-amber-300 border border-white/10 hover:border-amber-500/30 text-xs font-bold flex items-center justify-center gap-1.5 transition"
+          >
+            <span>Launch Macro Simulator</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* 50 Differences Knowledge Bytes */}
+        <div className="bg-[#0f111a] border border-amber-500/20 hover:border-amber-400/50 rounded-2xl p-5 shadow-xl flex flex-col justify-between space-y-4 transition group">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-bold">
+                KAPIL'S CURRICULUM
+              </span>
+              <span className="text-xs text-amber-400 font-mono">
+                {userProfile.acknowledgedBytes?.length || 0}/50 Done
+              </span>
+            </div>
+            <h3 className="text-base font-bold text-white flex items-center gap-2 group-hover:text-amber-300 transition">
+              <Lightbulb className="w-4 h-4 text-amber-400" />
+              50 Differences: Sheets vs Excel
+            </h3>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              Authoritative 50-item comparative curriculum with Kapil's verdicts across Calculation Speed, Collaboration, Query Syntax, Copilot/Gemini, and Pricing.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              playClick();
+              onNavigateTab('knowledge');
+            }}
+            className="w-full py-2 rounded-xl bg-white/5 hover:bg-amber-500/20 text-gray-300 hover:text-amber-300 border border-white/10 hover:border-amber-500/30 text-xs font-bold flex items-center justify-center gap-1.5 transition"
+          >
+            <span>Explore 50 Differences</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>

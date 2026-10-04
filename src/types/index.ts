@@ -126,6 +126,18 @@ export interface AssessmentScore {
   completedAt: string;
 }
 
+export interface KnowledgeByte {
+  id: string;
+  number: number;
+  category: string;
+  topic: string;
+  sheetsPerspective: string;
+  excelPerspective: string;
+  businessImpact: string;
+  winnerRecommendation: 'Google Sheets' | 'Microsoft Excel' | 'Context-Dependent Tie';
+  kapilVerdict: string;
+}
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -143,6 +155,10 @@ export interface UserProfile {
   certificateId?: string;
   certificateIssueDate?: string;
   moduleScores?: { [moduleId: number]: AssessmentScore };
+  acknowledgedBytes?: string[]; // Knowledge Byte IDs
+  completedLabs?: string[]; // Industry Lab IDs
+  completedCapstoneStages?: number[]; // Capstone stage numbers
+  completedSections?: string[]; // Curriculum section IDs
 }
 
 export interface LeaderboardUser {

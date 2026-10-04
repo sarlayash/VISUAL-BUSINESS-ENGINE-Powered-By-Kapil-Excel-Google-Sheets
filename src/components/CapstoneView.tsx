@@ -14,6 +14,7 @@ import {
 import { CAPSTONE_STAGES } from '../data/capstoneData';
 import { UserProfile } from '../types';
 import { playClick, playSuccess, playLevelUp } from '../utils/soundEffects';
+import { toggleCapstoneStageComplete } from '../utils/storage';
 import confetti from 'canvas-confetti';
 
 interface CapstoneViewProps {
@@ -35,6 +36,19 @@ export const CapstoneView: React.FC<CapstoneViewProps> = ({
   );
 
   const activeStage = CAPSTONE_STAGES[activeStageIdx];
+  const isStageDone = Boolean(
+    userProfile.capstoneCompleted ||
+    userProfile.completedCapstoneStages?.includes(activeStage.stageNumber) ||
+    activeStage.stageNumber < currentStageNum
+  );
+
+  const handleToggleStage = (stageNum: number) => {
+    playSuccess();
+    const updated = toggleCapstoneStageComplete(stageNum);
+    if (updated) {
+      onUpdateProfile(updated);
+    }
+  };
 
   const handleCompleteActiveStage = () => {
     playSuccess();
@@ -122,7 +136,10 @@ export const CapstoneView: React.FC<CapstoneViewProps> = ({
       {/* 9 Stages Horizontal Navigator */}
       <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-2">
         {CAPSTONE_STAGES.map((stg, idx) => {
-          const isPassed = userProfile.capstoneCompleted || idx + 1 < currentStageNum;
+          const isPassed =
+            userProfile.capstoneCompleted ||
+            userProfile.completedCapstoneStages?.includes(stg.stageNumber) ||
+            idx + 1 < currentStageNum;
           const isCurrent = idx + 1 === currentStageNum;
           const isSelected = activeStageIdx === idx;
 
@@ -201,13 +218,26 @@ export const CapstoneView: React.FC<CapstoneViewProps> = ({
               </span>
             </div>
 
-            <button
-              onClick={handleCompleteActiveStage}
-              className="px-6 py-3 rounded-xl gold-gradient-btn text-black font-extrabold text-xs uppercase tracking-wider flex items-center gap-2 shadow-xl"
-            >
-              <CheckCircle2 className="w-4 h-4 text-black" />
-              <span>Validate & Pass Stage 0{activeStage.stageNumber}</span>
-            </button>
+            <div className="flex items-center gap-3 flex-wrap">
+              <button
+                onClick={() => handleToggleStage(activeStage.stageNumber)}
+                className={`px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2 border transition ${
+                  isStageDone
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
+                    : 'bg-[#141624] text-gray-300 border-white/10 hover:border-white/30 hover:text-white'
+                }`}
+              >
+                <CheckCircle2 className={`w-4 h-4 ${isStageDone ? 'text-emerald-400' : 'text-gray-400'}`} />
+                <span>{isStageDone ? 'Stage Completed ✓' : 'Mark Stage Complete'}</span>
+              </button>
+              <button
+                onClick={handleCompleteActiveStage}
+                className="px-6 py-3 rounded-xl gold-gradient-btn text-black font-extrabold text-xs uppercase tracking-wider flex items-center gap-2 shadow-xl"
+              >
+                <CheckCircle2 className="w-4 h-4 text-black" />
+                <span>Validate & Advance Stage</span>
+              </button>
+            </div>
           </div>
         </div>
 

@@ -10,19 +10,34 @@ import {
   FileSpreadsheet,
 } from 'lucide-react';
 import { INDUSTRY_LABS } from '../data/industryLabsData';
-import { IndustryLab } from '../types';
-import { playClick } from '../utils/soundEffects';
+import { IndustryLab, UserProfile } from '../types';
+import { playClick, playSuccess } from '../utils/soundEffects';
+import { toggleLabComplete } from '../utils/storage';
 import { ChartViewer } from './ChartViewer';
 
 interface BusinessLabsViewProps {
+  userProfile?: UserProfile;
+  onUpdateProfile?: (profile: UserProfile) => void;
   onLaunchSimulatorWithLab: (lab: IndustryLab) => void;
 }
 
 export const BusinessLabsView: React.FC<BusinessLabsViewProps> = ({
+  userProfile,
+  onUpdateProfile,
   onLaunchSimulatorWithLab,
 }) => {
   const [selectedLabId, setSelectedLabId] = useState<string>('retail');
   const activeLab = INDUSTRY_LABS.find((l) => l.id === selectedLabId) || INDUSTRY_LABS[0];
+
+  const isLabCompleted = Boolean(userProfile?.completedLabs?.includes(activeLab.id));
+
+  const handleToggleActiveLab = () => {
+    playSuccess();
+    const updated = toggleLabComplete(activeLab.id);
+    if (updated && onUpdateProfile) {
+      onUpdateProfile(updated);
+    }
+  };
 
   // Generate chart data points from active lab dataset
   const chartData = activeLab.dataset.rows.map((row) => {
@@ -54,22 +69,36 @@ export const BusinessLabsView: React.FC<BusinessLabsViewProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={() => {
-            playClick();
-            onLaunchSimulatorWithLab(activeLab);
-          }}
-          className="px-6 py-3 rounded-xl gold-gradient-btn text-black font-extrabold text-xs uppercase tracking-wider flex items-center gap-2 shadow-xl shrink-0"
-        >
-          <Play className="w-4 h-4 fill-black" />
-          <span>Launch {activeLab.industry} Simulator</span>
-        </button>
+        <div className="flex items-center gap-3 shrink-0 flex-wrap">
+          <button
+            onClick={handleToggleActiveLab}
+            className={`px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2 border transition shadow-lg ${
+              isLabCompleted
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
+                : 'bg-[#141624] text-gray-300 border-white/10 hover:border-white/30 hover:text-white'
+            }`}
+          >
+            <CheckCircle2 className={`w-4 h-4 ${isLabCompleted ? 'text-emerald-400' : 'text-gray-400'}`} />
+            <span>{isLabCompleted ? 'Lab Completed' : 'Mark Lab Complete'}</span>
+          </button>
+          <button
+            onClick={() => {
+              playClick();
+              onLaunchSimulatorWithLab(activeLab);
+            }}
+            className="px-6 py-3 rounded-xl gold-gradient-btn text-black font-extrabold text-xs uppercase tracking-wider flex items-center gap-2 shadow-xl shrink-0"
+          >
+            <Play className="w-4 h-4 fill-black" />
+            <span>Launch {activeLab.industry} Simulator</span>
+          </button>
+        </div>
       </div>
 
       {/* 10 Industry Pills Carousel */}
       <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2">
         {INDUSTRY_LABS.map((lab) => {
           const isSelected = lab.id === selectedLabId;
+          const isDone = Boolean(userProfile?.completedLabs?.includes(lab.id));
           return (
             <button
               key={lab.id}
@@ -85,6 +114,7 @@ export const BusinessLabsView: React.FC<BusinessLabsViewProps> = ({
             >
               <span className="text-base">{lab.icon}</span>
               <span>{lab.industry}</span>
+              {isDone && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
             </button>
           );
         })}
@@ -139,16 +169,29 @@ export const BusinessLabsView: React.FC<BusinessLabsViewProps> = ({
               </code>
             </div>
 
-            <button
-              onClick={() => {
-                playClick();
-                onLaunchSimulatorWithLab(activeLab);
-              }}
-              className="w-full py-3 rounded-xl gold-gradient-btn text-black font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl"
-            >
-              <Play className="w-4 h-4 fill-black" />
-              <span>Simulate with Real Dataset</span>
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2 pt-2">
+              <button
+                onClick={handleToggleActiveLab}
+                className={`flex-1 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition shadow-md ${
+                  isLabCompleted
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
+                    : 'bg-[#141624] text-gray-300 border-white/10 hover:border-white/30 hover:text-white'
+                }`}
+              >
+                <CheckCircle2 className={`w-4 h-4 ${isLabCompleted ? 'text-emerald-400' : 'text-gray-400'}`} />
+                <span>{isLabCompleted ? 'Completed ✓' : 'Mark Complete'}</span>
+              </button>
+              <button
+                onClick={() => {
+                  playClick();
+                  onLaunchSimulatorWithLab(activeLab);
+                }}
+                className="flex-[2] py-3 rounded-xl gold-gradient-btn text-black font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl"
+              >
+                <Play className="w-4 h-4 fill-black" />
+                <span>Simulate Lab</span>
+              </button>
+            </div>
           </div>
         </div>
 

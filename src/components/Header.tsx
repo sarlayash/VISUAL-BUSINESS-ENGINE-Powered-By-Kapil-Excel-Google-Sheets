@@ -72,13 +72,16 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
     { id: 'simulator', label: 'Simulator Lab', icon: '⚡' },
     { id: 'functions', label: 'fx Function Lab', icon: '⚡' },
+    { id: 'pivots', label: 'Pivot & Charts', icon: '📊' },
+    { id: 'macros', label: 'Macros & VBA', icon: '🤖' },
+    { id: 'knowledge', label: '50 Differences', icon: '💡' },
     { id: 'assessments', label: 'Assessments (Mocks)', icon: '⏱️' },
     { id: 'curriculum', label: 'Curriculum (30h)', icon: '📚' },
     { id: 'labs', label: '10 Business Labs', icon: '🏢' },
     { id: 'capstone', label: 'Capstone', icon: '🏆' },
     { id: 'certificates', label: 'Certificates & Badges', icon: '🏅' },
     { id: 'verify', label: 'Verify Portal', icon: '🔍' },
-    { id: 'leaderboard', label: 'Leaderboard', icon: '📊' },
+    { id: 'leaderboard', label: 'Leaderboard', icon: '📈' },
     { id: 'admin', label: 'Admin', icon: '⚙️' },
   ];
 
@@ -117,7 +120,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* DESKTOP NAVIGATION TABS (Shown when logged in) */}
             {userProfile && (
-              <nav className="hidden lg:flex items-center gap-1">
+              <nav className="hidden lg:flex items-center gap-1 overflow-x-auto no-scrollbar max-w-[58vw] py-1">
                 {navItems.map((item) => {
                   const isActive = activeTab === item.id;
                   return (
@@ -127,7 +130,7 @@ export const Header: React.FC<HeaderProps> = ({
                         playClick();
                         setActiveTab(item.id);
                       }}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                      className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all shrink-0 ${
                         isActive
                           ? 'bg-amber-500/15 text-amber-300 border border-amber-500/40 shadow-sm'
                           : 'text-gray-400 hover:text-white hover:bg-white/5'
