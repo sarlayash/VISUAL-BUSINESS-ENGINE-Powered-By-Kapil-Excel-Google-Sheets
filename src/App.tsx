@@ -19,6 +19,7 @@ import {
   signOutUser,
   addXpAndProgress,
 } from './utils/storage';
+import { signOutFirebase, onFirebaseAuthStateChange } from './utils/firebase';
 import { playClick, playSuccess, playLevelUp } from './utils/soundEffects';
 import { Smartphone, Download, X } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -29,6 +30,26 @@ export function App() {
   const [activeChallengeId, setActiveChallengeId] = useState<string>('m1_c1');
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showPwaBanner, setShowPwaBanner] = useState<boolean>(true);
+
+  // Sync Firebase Auth state
+  useEffect(() => {
+    const unsubscribe = onFirebaseAuthStateChange((fbUser) => {
+      if (fbUser) {
+        setUserProfile((prev) => {
+          if (!prev) {
+            return signInWithGoogle(
+              fbUser.displayName || 'Google Learner',
+              fbUser.email || '',
+              fbUser.photoURL || undefined,
+              fbUser.uid
+            );
+          }
+          return prev;
+        });
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Capture PWA beforeinstallprompt event for phone installation
   useEffect(() => {
@@ -60,8 +81,8 @@ export function App() {
     }
   };
 
-  const handleGoogleSignIn = (name: string, email: string) => {
-    const profile = signInWithGoogle(name, email);
+  const handleGoogleSignIn = (name: string, email: string, avatar?: string, uid?: string) => {
+    const profile = signInWithGoogle(name, email, avatar, uid);
     setUserProfile(profile);
     setActiveTab('dashboard');
     try {
@@ -75,6 +96,7 @@ export function App() {
   };
 
   const handleSignOut = () => {
+    signOutFirebase().catch(() => {});
     signOutUser();
     setUserProfile(null);
     setActiveTab('landing');

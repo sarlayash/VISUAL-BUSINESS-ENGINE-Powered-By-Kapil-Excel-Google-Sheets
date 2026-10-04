@@ -14,12 +14,14 @@ import {
   Smartphone,
   BookOpen,
   Briefcase,
+  AlertCircle,
   ExternalLink,
 } from 'lucide-react';
-import { playClick, playSuccess } from '../utils/soundEffects';
+import { playClick, playSuccess, playError } from '../utils/soundEffects';
+import { signInWithGoogleFirebase } from '../utils/firebase';
 
 interface LandingPageViewProps {
-  onSignIn: (name: string, email: string) => void;
+  onSignIn: (name: string, email: string, avatar?: string, uid?: string) => void;
   onExplorePreview?: () => void;
 }
 
@@ -27,8 +29,37 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({ onSignIn }) =>
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [showSignInModal, setShowSignInModal] = useState(false);
+  const [isFirebaseLoading, setIsFirebaseLoading] = useState(false);
+  const [firebaseError, setFirebaseError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Real Firebase Google OAuth Popup Sign-In
+  const handleFirebasePopup = async () => {
+    playClick();
+    setIsFirebaseLoading(true);
+    setFirebaseError(null);
+    try {
+      const googleUser = await signInWithGoogleFirebase();
+      playSuccess();
+      onSignIn(
+        googleUser.displayName || 'Google Learner',
+        googleUser.email,
+        googleUser.photoURL,
+        googleUser.uid
+      );
+    } catch (err: any) {
+      console.warn('Firebase sign-in popup notice:', err);
+      setIsFirebaseLoading(false);
+      if (err?.code === 'auth/popup-closed-by-user') {
+        setFirebaseError('Sign-in popup was closed. Click again or enter your details below.');
+      } else if (err?.code === 'auth/network-request-failed' || !navigator.onLine) {
+        setFirebaseError('Working offline? Enter your name & email below to continue in 100% offline mode.');
+      } else {
+        setFirebaseError(err?.message || 'Google Auth connection error. You can continue below.');
+      }
+    }
+  };
+
+  const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!userName.trim() || !userEmail.trim()) return;
     playSuccess();
@@ -233,9 +264,56 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({ onSignIn }) =>
             </p>
           </div>
 
-          {/* Interactive Google Sign-In Card */}
+          {/* Interactive Google Sign-In Card with Firebase OAuth */}
           <div className="bg-[#0f1118] border-2 border-amber-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl text-left space-y-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Primary Action: Direct One-Click Firebase Google Sign-In */}
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={handleFirebasePopup}
+                disabled={isFirebaseLoading}
+                className="w-full py-4 rounded-2xl bg-white hover:bg-gray-100 disabled:opacity-50 text-gray-900 font-bold text-sm sm:text-base flex items-center justify-center gap-3 shadow-2xl active:scale-95 transition"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                  />
+                </svg>
+                <span>{isFirebaseLoading ? 'Connecting Google Account...' : 'Continue with Google (Instant Login)'}</span>
+              </button>
+
+              {firebaseError && (
+                <div className="bg-amber-950/40 border border-amber-500/40 text-amber-200 text-xs p-3 rounded-xl flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>{firebaseError}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-white/10" />
+              <span className="text-[11px] font-mono text-gray-500 uppercase">
+                Or Continue Offline / Manual Verification
+              </span>
+              <div className="flex-1 h-px bg-white/10" />
+            </div>
+
+            {/* Offline-first / Manual profile inputs */}
+            <form onSubmit={handleManualSubmit} className="space-y-4">
               <div>
                 <label className="text-xs font-bold text-gray-300 block mb-1.5 uppercase tracking-wider">
                   Full Name (Appears on your Official Certificate):
@@ -269,25 +347,8 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({ onSignIn }) =>
                   type="submit"
                   className="w-full sm:flex-1 py-3.5 rounded-xl gold-gradient-btn text-black font-extrabold text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl active:scale-95 transition"
                 >
-                  <svg className="w-5 h-5" viewBox="0 0 24 24">
-                    <path
-                      fill="#4285F4"
-                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                    />
-                    <path
-                      fill="#EA4335"
-                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                    />
-                  </svg>
-                  <span>Continue with Google</span>
+                  <Play className="w-4 h-4 fill-black" />
+                  <span>Launch Engine (Offline Ready)</span>
                 </button>
 
                 <button
@@ -302,13 +363,13 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({ onSignIn }) =>
 
             <div className="pt-2 border-t border-white/5 text-[11px] text-gray-500 text-center flex items-center justify-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Verifiable data privacy • Zero password management • Offline enabled</span>
+              <span>Verifiable data privacy • Firebase secure auth • Zero password management • Offline enabled</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Modal Fallback for "Start Your Mission" button */}
+      {/* Modal Fallback */}
       {showSignInModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
           <div className="bg-[#0f1118] border border-amber-500/40 w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl relative">
@@ -326,46 +387,73 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({ onSignIn }) =>
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-              <div>
-                <label className="text-gray-300 block mb-1 font-semibold">Your Name:</label>
-                <input
-                  type="text"
-                  required
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                  placeholder="Enter full name for certificates"
-                  className="w-full bg-[#161824] text-white p-3 rounded-xl border border-white/10 focus:outline-none focus:border-amber-400 text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="text-gray-300 block mb-1 font-semibold">Google Email:</label>
-                <input
-                  type="email"
-                  required
-                  value={userEmail}
-                  onChange={(e) => setUserEmail(e.target.value)}
-                  placeholder="name@gmail.com"
-                  className="w-full bg-[#161824] text-white p-3 rounded-xl border border-white/10 focus:outline-none focus:border-amber-400 text-sm"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-3.5 rounded-xl gold-gradient-btn text-black font-extrabold text-xs uppercase tracking-wider shadow-lg"
-              >
-                Launch Learning Engine
-              </button>
-
+            <div className="space-y-4 text-xs">
               <button
                 type="button"
-                onClick={handleQuickDemo}
-                className="w-full py-2.5 rounded-xl bg-[#171924] hover:bg-white/10 text-gray-300 font-semibold text-xs border border-white/10 transition"
+                onClick={handleFirebasePopup}
+                disabled={isFirebaseLoading}
+                className="w-full py-3.5 rounded-xl bg-white hover:bg-gray-100 text-gray-900 font-bold text-xs flex items-center justify-center gap-2 shadow"
               >
-                Fast-track as Kapil (Demo Profile)
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                  />
+                </svg>
+                <span>{isFirebaseLoading ? 'Connecting...' : 'One-Click Google Sign-In'}</span>
               </button>
-            </form>
+
+              <div className="flex items-center gap-2 text-gray-500">
+                <div className="flex-1 h-px bg-white/10" />
+                <span>or</span>
+                <div className="flex-1 h-px bg-white/10" />
+              </div>
+
+              <form onSubmit={handleManualSubmit} className="space-y-3">
+                <div>
+                  <label className="text-gray-300 block mb-1 font-semibold">Your Name:</label>
+                  <input
+                    type="text"
+                    required
+                    value={userName}
+                    onChange={(e) => setUserName(e.target.value)}
+                    placeholder="Enter full name"
+                    className="w-full bg-[#161824] text-white p-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-amber-400 text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-gray-300 block mb-1 font-semibold">Google Email:</label>
+                  <input
+                    type="email"
+                    required
+                    value={userEmail}
+                    onChange={(e) => setUserEmail(e.target.value)}
+                    placeholder="name@gmail.com"
+                    className="w-full bg-[#161824] text-white p-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-amber-400 text-xs"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-3 rounded-xl gold-gradient-btn text-black font-extrabold text-xs uppercase"
+                >
+                  Continue
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       )}

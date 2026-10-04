@@ -43,11 +43,13 @@ export function saveUserProfile(profile: UserProfile): void {
 }
 
 // Sign in or register a real user
-export function signInWithGoogle(name: string, email: string, avatar?: string): UserProfile {
+export function signInWithGoogle(name: string, email: string, avatar?: string, uid?: string): UserProfile {
   const existingLearners = getRegisteredLearners();
-  const found = existingLearners.find((l) => l.email.toLowerCase() === email.toLowerCase());
+  const found = existingLearners.find((l) => (uid && l.id === uid) || l.email.toLowerCase() === email.toLowerCase());
 
   if (found) {
+    if (avatar && !found.avatar.includes('http')) found.avatar = avatar;
+    if (name && found.name === 'Learner') found.name = name;
     // Return existing user with their real accumulated progress
     saveUserProfile(found);
     return found;
@@ -55,7 +57,7 @@ export function signInWithGoogle(name: string, email: string, avatar?: string): 
 
   // Create clean, authentic new profile starting at genuine 0 XP
   const newProfile: UserProfile = {
-    id: `usr_${Date.now()}`,
+    id: uid || `usr_${Date.now()}`,
     name: name.trim() || 'Learner',
     email: email.trim().toLowerCase(),
     avatar:
