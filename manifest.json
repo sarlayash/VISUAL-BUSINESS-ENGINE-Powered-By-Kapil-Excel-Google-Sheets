@@ -1,0 +1,39 @@
+{
+  "name": "Visual Business Engine — Excel & Google Sheets Simulation Portal",
+  "short_name": "Visual Business",
+  "description": "100% Hands-On Business Analytics Simulation Portal | SarlaYash Mission Presents | Powered by Kapil",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#07080b",
+  "theme_color": "#07080b",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "business", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Simulator Lab",
+      "short_name": "Simulator",
+      "description": "Open Spreadsheet Simulation Grid",
+      "url": "./#simulator"
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View Progress & Badges",
+      "url": "./#dashboard"
+    }
+  ]
+}
