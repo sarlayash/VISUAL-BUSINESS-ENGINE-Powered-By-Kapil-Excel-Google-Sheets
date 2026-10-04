@@ -36,6 +36,16 @@ export function App() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showPwaBanner, setShowPwaBanner] = useState<boolean>(true);
 
+  // Check for QR Code verification query parameter on load
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('verify') || params.get('id')) {
+        setActiveTab('verify');
+      }
+    }
+  }, []);
+
   // Sync Firebase Auth state
   useEffect(() => {
     const unsubscribe = onFirebaseAuthStateChange((fbUser) => {
@@ -289,8 +299,10 @@ export function App() {
 
       {/* Main App Container */}
       <main className="flex-1 flex flex-col">
-        {/* If NOT signed in OR on landing tab: Render Landing Page */}
-        {!userProfile || activeTab === 'landing' ? (
+        {/* If on verification portal: accessible publicly for instant QR scan authentication */}
+        {activeTab === 'verify' ? (
+          <VerificationPortal />
+        ) : !userProfile || activeTab === 'landing' ? (
           <LandingPageView onSignIn={handleGoogleSignIn} />
         ) : (
           /* When signed in: All content loads dynamically! */

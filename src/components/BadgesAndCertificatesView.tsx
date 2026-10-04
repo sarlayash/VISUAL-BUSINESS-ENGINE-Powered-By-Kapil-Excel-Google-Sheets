@@ -16,6 +16,7 @@ import {
   Clock,
   Play,
   ArrowRight,
+  X,
 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { MODULE_ASSESSMENTS } from '../data/assessmentsData';
@@ -23,6 +24,10 @@ import {
   drawCertificateToCanvas,
   downloadCertificatePng,
   printCertificatePdf,
+  drawBadgeToCanvas,
+  downloadBadgePng,
+  printBadgePdf,
+  getVerificationUrl,
 } from '../utils/certificateGenerator';
 import { playClick, playSuccess, playError } from '../utils/soundEffects';
 
@@ -36,9 +41,11 @@ export const BadgesAndCertificatesView: React.FC<BadgesAndCertificatesViewProps>
   onNavigateTab,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const badgeCanvasRef = useRef<HTMLCanvasElement>(null);
   const [certType, setCertType] = useState<'final' | 'module'>('final');
   const [selectedModuleId, setSelectedModuleId] = useState<number>(1);
   const [copiedLinkedIn, setCopiedLinkedIn] = useState<boolean>(false);
+  const [selectedBadgeForModal, setSelectedBadgeForModal] = useState<any>(null);
 
   const certId = userProfile.certificateId || 'SY-VBE-2026-000124';
   const issueDate = userProfile.certificateIssueDate || 'October 4, 2026';
@@ -126,6 +133,46 @@ export const BadgesAndCertificatesView: React.FC<BadgesAndCertificatesViewProps>
     }
   };
 
+  // Draw Badge to Canvas whenever a badge modal opens
+  useEffect(() => {
+    if (badgeCanvasRef.current && selectedBadgeForModal) {
+      const b = selectedBadgeForModal;
+      const bScore = b.moduleId > 0 ? (userProfile.moduleScores?.[b.moduleId]?.score || 80) : Math.max(80, avgScore);
+      const bCertId = b.moduleId > 0 ? `${certId}-M${b.moduleId}` : `${certId}-GRAND`;
+      drawBadgeToCanvas(badgeCanvasRef.current, {
+        badgeTitle: b.title,
+        badgeModule: b.module,
+        badgeIcon: b.icon,
+        badgeDesc: b.desc,
+        learnerName: userProfile.name,
+        certificateId: bCertId,
+        score: bScore,
+        issueDate: issueDate,
+        isGrand: b.isGrand,
+      });
+    }
+  }, [selectedBadgeForModal, userProfile.name, certId, issueDate, avgScore]);
+
+  const handleDownloadBadge = (badge: any) => {
+    playClick();
+    if (badgeCanvasRef.current) {
+      downloadBadgePng(
+        badgeCanvasRef.current,
+        `VBE_Badge_${badge.title.replace(/\s+/g, '_')}_${userProfile.name.replace(/\s+/g, '_')}`
+      );
+    }
+  };
+
+  const handlePrintBadge = (badge: any) => {
+    playClick();
+    if (badgeCanvasRef.current) {
+      printBadgePdf(
+        badgeCanvasRef.current,
+        `Visual Business Engine - Verified Badge - ${badge.title} - ${userProfile.name}`
+      );
+    }
+  };
+
   const copyLinkedInPost = () => {
     if (!isCurrentCertUnlocked) {
       playError();
@@ -133,9 +180,10 @@ export const BadgesAndCertificatesView: React.FC<BadgesAndCertificatesViewProps>
       return;
     }
     playSuccess();
+    const verifyUrl = getVerificationUrl(certId);
     const postText = `🚀 Proud to announce that I have achieved the VISUAL BUSINESS ENGINEER certification from SarlaYash Mission, powered by Kapil!\n\nCompleted 30 hours of 100% hands-on simulation training across Microsoft Excel & Google Sheets—solving real business challenges in Retail, Banking, SaaS, HR, and Supply Chain with an assessment score of ${
       certType === 'final' ? avgScore : moduleScore
-    }%!\n\nCertificate ID: ${certId}\nVerify Credential: https://visualbusinessengine.sarlayash.org/verify?id=${certId}\n\n#VisualBusinessEngine #DataAnalytics #BusinessIntelligence #Excel #GoogleSheets #SarlaYash #SarlaYashMission`;
+    }%!\n\nCertificate ID: ${certId}\nVerify Credential: ${verifyUrl}\n\n#VisualBusinessEngine #DataAnalytics #BusinessIntelligence #Excel #GoogleSheets #SarlaYash #SarlaYashMission`;
     navigator.clipboard.writeText(postText);
     setCopiedLinkedIn(true);
     setTimeout(() => setCopiedLinkedIn(false), 3000);
@@ -481,15 +529,34 @@ export const BadgesAndCertificatesView: React.FC<BadgesAndCertificatesViewProps>
 
                 <div className="pt-4 mt-4 border-t border-white/5 flex items-center justify-between">
                   {isEarned ? (
-                    <button
-                      onClick={() => {
-                        playClick();
-                        alert(`PNG Badge for "${badge.title}" exported!`);
-                      }}
-                      className="text-xs text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1"
-                    >
-                      <Download className="w-3.5 h-3.5" /> Download Badge PNG
-                    </button>
+                    <div className="flex items-center gap-2 w-full justify-between">
+                      <button
+                        onClick={() => {
+                          playClick();
+                          setSelectedBadgeForModal(badge);
+                        }}
+                        className="text-xs px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 font-bold border border-amber-500/30 flex items-center gap-1.5 transition"
+                      >
+                        <QrCode className="w-3.5 h-3.5" />
+                        <span>Verify QR & View</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          playClick();
+                          setSelectedBadgeForModal(badge);
+                          setTimeout(() => {
+                            if (badgeCanvasRef.current) {
+                              handleDownloadBadge(badge);
+                            }
+                          }, 150);
+                        }}
+                        className="text-xs px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white font-semibold border border-white/10 flex items-center gap-1 transition"
+                        title="Quick Download Badge PNG"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>PNG</span>
+                      </button>
+                    </div>
                   ) : (
                     onNavigateTab && (
                       <button
@@ -510,6 +577,70 @@ export const BadgesAndCertificatesView: React.FC<BadgesAndCertificatesViewProps>
           })}
         </div>
       </div>
+
+      {/* ================= INTERACTIVE QR-VERIFIED BADGE MODAL ================= */}
+      {selectedBadgeForModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+          <div className="bg-[#0f1118] border-2 border-amber-500/40 w-full max-w-lg rounded-2xl p-6 shadow-2xl relative space-y-4">
+            {/* Close Button */}
+            <button
+              onClick={() => setSelectedBadgeForModal(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white p-1 rounded-lg bg-white/5 hover:bg-white/10 transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Modal Header */}
+            <div className="text-center space-y-1">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20 font-bold">
+                OFFICIAL QR-VERIFIED ACCREDITED BADGE
+              </span>
+              <h3 className="text-xl font-extrabold text-white">{selectedBadgeForModal.title}</h3>
+              <p className="text-xs text-gray-400">
+                {selectedBadgeForModal.module} • {userProfile.name}
+              </p>
+            </div>
+
+            {/* Badge Canvas Viewport */}
+            <div className="relative w-full overflow-hidden rounded-xl border border-amber-500/30 bg-[#07080b] flex items-center justify-center p-3 shadow-inner">
+              <canvas
+                ref={badgeCanvasRef}
+                className="w-full max-w-xs h-auto rounded-lg shadow-2xl"
+                style={{ aspectRatio: '1 / 1' }}
+              />
+            </div>
+
+            {/* Verification Status Pill */}
+            <div className="bg-[#141624] p-3 rounded-xl border border-white/5 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span className="text-gray-300">
+                  Scannable ISO QR Code verified on public portal registry.
+                </span>
+              </div>
+              <span className="text-amber-400 font-mono font-bold">≥80% Honors</span>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              <button
+                onClick={() => handleDownloadBadge(selectedBadgeForModal)}
+                className="py-2.5 rounded-xl gold-gradient-btn text-black font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition active:scale-95"
+              >
+                <Download className="w-4 h-4 text-black" />
+                <span>Download Badge PNG</span>
+              </button>
+              <button
+                onClick={() => handlePrintBadge(selectedBadgeForModal)}
+                className="py-2.5 rounded-xl bg-[#171a26] hover:bg-white/10 text-white font-bold text-xs border border-white/10 flex items-center justify-center gap-2 transition active:scale-95"
+              >
+                <Printer className="w-4 h-4 text-amber-400" />
+                <span>Print / Save PDF</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

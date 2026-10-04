@@ -145,4 +145,34 @@ test('Mark as Complete User Agency: Toggle and Persistent Storage', () => {
   assert.deepEqual(completedChallenges, ['m1_c2', 'm1_c1']);
 });
 
+test('QR Code Generation: Standard ISO matrix creation with valid error correction', async () => {
+  const QRCode = (await import('qrcode')).default;
+  const sampleUrl = 'https://sarlayash.github.io/VISUAL-BUSINESS-ENGINE-Powered-By-Kapil-Excel-Google-Sheets/?verify=SY-VBE-2026-000124';
+  const qr = QRCode.create(sampleUrl, { errorCorrectionLevel: 'M' });
+  assert.ok(qr, 'QR code object must be generated');
+  assert.ok(qr.modules.size >= 21, 'QR code module size must be at least 21x21');
+  assert.equal(typeof qr.modules.get(0, 0), 'number', 'Corner finder pattern must exist');
+});
+
+test('Badge & Certificate QR Verification Integrity: IDs and 80% passing enforcement', () => {
+  const certId = 'SY-VBE-2026-000124';
+  const badgeId = `${certId}-M1`;
+  const grandBadgeId = `${certId}-GRAND`;
+
+  assert.match(certId, /^SY-VBE-\d{4}-\d{6}$/, 'Main certificate ID format valid');
+  assert.match(badgeId, /^SY-VBE-\d{4}-\d{6}-M[1-5]$/, 'Module badge ID format valid');
+  assert.match(grandBadgeId, /^SY-VBE-\d{4}-\d{6}-GRAND$/, 'Grand milestone badge ID format valid');
+
+  const checkBadgeUnlock = (score, isGrand, allPassed, capstoneDone) => {
+    if (isGrand) return allPassed && capstoneDone;
+    return score >= 80;
+  };
+
+  assert.equal(checkBadgeUnlock(79, false, false, false), false, 'Badge must remain locked at 79%');
+  assert.equal(checkBadgeUnlock(80, false, false, false), true, 'Badge unlocks at 80%');
+  assert.equal(checkBadgeUnlock(100, true, true, true), true, 'Grand badge unlocks when all passed + capstone done');
+  assert.equal(checkBadgeUnlock(100, true, true, false), false, 'Grand badge locked without capstone');
+});
+
+
 

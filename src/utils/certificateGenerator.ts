@@ -1,5 +1,6 @@
-// High-Resolution FAANG-grade Canvas Certificate Renderer & PNG/PDF Exporter
+// High-Resolution FAANG-grade Canvas Certificate & Badge Renderer & PNG/PDF Exporter
 // Brand Theme: Black x Gold x White (SarlaYash Mission Presents | Powered by Kapil)
+import QRCode from 'qrcode';
 
 export interface CertificateConfig {
   learnerName: string;
@@ -10,6 +11,74 @@ export interface CertificateConfig {
   score: number;
 }
 
+export interface BadgeConfig {
+  badgeTitle: string;
+  badgeModule: string;
+  badgeIcon: string;
+  badgeDesc: string;
+  learnerName: string;
+  certificateId: string;
+  score: number;
+  issueDate: string;
+  isGrand?: boolean;
+}
+
+// Generate the public verification URL
+export function getVerificationUrl(certId: string): string {
+  if (typeof window !== 'undefined' && window.location) {
+    const origin = window.location.origin;
+    const pathname = window.location.pathname.replace(/\/$/, '');
+    return `${origin}${pathname}/?verify=${encodeURIComponent(certId)}`;
+  }
+  return `https://sarlayash.github.io/VISUAL-BUSINESS-ENGINE-Powered-By-Kapil-Excel-Google-Sheets/?verify=${encodeURIComponent(certId)}`;
+}
+
+// Draw a real, ISO-compliant scannable QR Code onto a Canvas 2D context
+export function drawRealQrCode(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  size: number
+): void {
+  try {
+    const qr = QRCode.create(text, { errorCorrectionLevel: 'M' });
+    const moduleCount = qr.modules.size;
+    const padding = 6; // white quiet zone
+    const innerSize = size - padding * 2;
+    const cellSize = innerSize / moduleCount;
+
+    ctx.save();
+    // 1. Crisp white background
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(x, y, size, size);
+
+    // 2. Gold border card framing
+    ctx.strokeStyle = '#F59E0B';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(x, y, size, size);
+
+    // 3. Render real dark modules
+    ctx.fillStyle = '#07080B';
+    for (let r = 0; r < moduleCount; r++) {
+      for (let c = 0; c < moduleCount; c++) {
+        if (qr.modules.get(r, c)) {
+          ctx.fillRect(
+            x + padding + c * cellSize,
+            y + padding + r * cellSize,
+            cellSize + 0.4,
+            cellSize + 0.4
+          );
+        }
+      }
+    }
+    ctx.restore();
+  } catch (err) {
+    console.error('Failed to generate QR code', err);
+  }
+}
+
+// Draw Full Enterprise Certificate to Canvas (1600 x 1130)
 export function drawCertificateToCanvas(
   canvas: HTMLCanvasElement,
   config: CertificateConfig
@@ -125,19 +194,32 @@ export function drawCertificateToCanvas(
     ctx.fillText('Awarded To', width / 2, 420);
   }
 
-  // 6. Recipient Learner Name
+  // 6. Recipient Learner Name with Auto-Scale (Prevents cropping of long names)
   const nameY = config.type === 'final' ? 450 : 490;
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = 'bold 58px Georgia, serif';
-  ctx.letterSpacing = '2px';
-  ctx.fillText(config.learnerName || 'Kapil', width / 2, nameY);
 
-  // Underline for name
+  let nameFontSize = 58;
+  ctx.font = `bold ${nameFontSize}px Georgia, serif`;
+  ctx.letterSpacing = '2px';
+  const rawName = config.learnerName || 'Kapil';
+  let nameWidth = ctx.measureText(rawName).width;
+
+  // Dynamically downscale font if name is very long to avoid overflow
+  while (nameWidth > 860 && nameFontSize > 26) {
+    nameFontSize -= 2;
+    ctx.font = `bold ${nameFontSize}px Georgia, serif`;
+    nameWidth = ctx.measureText(rawName).width;
+  }
+  ctx.fillText(rawName, width / 2, nameY);
+
+  // Responsive Underline scaled to match learner name
+  const underlinePadding = Math.min(60, Math.max(30, nameWidth * 0.12));
+  const underlineHalfWidth = Math.min(460, (nameWidth / 2) + underlinePadding);
   ctx.strokeStyle = '#F59E0B';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(width / 2 - 280, nameY + 20);
-  ctx.lineTo(width / 2 + 280, nameY + 20);
+  ctx.moveTo(width / 2 - underlineHalfWidth, nameY + 20);
+  ctx.lineTo(width / 2 + underlineHalfWidth, nameY + 20);
   ctx.stroke();
 
   // 7. Statement of Completion
@@ -251,56 +333,168 @@ export function drawCertificateToCanvas(
   ctx.fill();
   ctx.restore();
 
-  // Right: Certificate Verification Details + QR Code Mock
-  const qrX = width - 360;
-  drawSimulatedQrCode(ctx, qrX, footerY - 50, 90);
+  // Right: Certificate Verification Details + Real Scannable QR Code
+  const qrSize = 100;
+  const qrX = width - 420;
+  const qrY = footerY - 45;
+
+  const verifyUrl = getVerificationUrl(config.certificateId);
+  drawRealQrCode(ctx, verifyUrl, qrX, qrY, qrSize);
 
   ctx.textAlign = 'left';
   ctx.fillStyle = '#E5E7EB';
-  ctx.font = '600 15px -apple-system, sans-serif';
-  ctx.fillText(`ID: ${config.certificateId}`, qrX + 105, footerY - 32);
+  ctx.font = '600 16px -apple-system, sans-serif';
+  ctx.fillText(`ID: ${config.certificateId}`, qrX + qrSize + 16, qrY + 22);
 
   ctx.fillStyle = '#9CA3AF';
   ctx.font = '400 14px -apple-system, sans-serif';
-  ctx.fillText(`Issued: ${config.issueDate}`, qrX + 105, footerY - 10);
-  ctx.fillText(`Score: ${config.score}% Verified`, qrX + 105, footerY + 12);
+  ctx.fillText(`Issued: ${config.issueDate}`, qrX + qrSize + 16, qrY + 46);
+  ctx.fillText(`Score: ${config.score}% Verified`, qrX + qrSize + 16, qrY + 70);
+
   ctx.fillStyle = '#F59E0B';
-  ctx.font = '500 13px -apple-system, sans-serif';
-  ctx.fillText('Scan QR to verify on portal', qrX + 105, footerY + 34);
+  ctx.font = '600 13px -apple-system, sans-serif';
+  ctx.fillText('Scan QR to Verify ↗', qrX + qrSize + 16, qrY + 94);
 }
 
-// Vector QR Code Pattern Generator
-function drawSimulatedQrCode(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+// Draw Standalone Badge Accreditation Card to Canvas (800 x 800)
+export function drawBadgeToCanvas(
+  canvas: HTMLCanvasElement,
+  config: BadgeConfig
+): void {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const size = 800;
+  canvas.width = size;
+  canvas.height = size;
+
+  // 1. Deep Obsidian Gradient
+  const bgGrad = ctx.createRadialGradient(size / 2, size / 2, 50, size / 2, size / 2, 450);
+  bgGrad.addColorStop(0, '#161826');
+  bgGrad.addColorStop(0.6, '#0B0D14');
+  bgGrad.addColorStop(1, '#050608');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, size, size);
+
+  // 2. Gold Foil Framing
+  ctx.strokeStyle = '#F59E0B';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(30, 30, size - 60, size - 60);
+
+  ctx.strokeStyle = 'rgba(245, 158, 11, 0.35)';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(42, 42, size - 84, size - 84);
+
+  // 3. Top Header
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#9CA3AF';
+  ctx.font = '600 13px -apple-system, sans-serif';
+  ctx.letterSpacing = '4px';
+  ctx.fillText('SARLAYASH MISSION • ACCREDITED BADGE', size / 2, 85);
+
+  // 4. Large Glowing Badge Shield Emblem
+  const sealX = size / 2;
+  const sealY = 195;
+
   ctx.save();
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(x, y, size, size);
+  ctx.translate(sealX, sealY);
 
-  ctx.fillStyle = '#07080B';
-  const cellSize = size / 21; // 21x21 QR Grid
+  // Gold outer glow circle
+  ctx.fillStyle = 'rgba(245, 158, 11, 0.15)';
+  ctx.beginPath();
+  ctx.arc(0, 0, 75, 0, Math.PI * 2);
+  ctx.fill();
 
-  // Helper for QR finder patterns
-  const drawFinder = (fx: number, fy: number) => {
-    ctx.fillRect(x + fx * cellSize, y + fy * cellSize, 7 * cellSize, 7 * cellSize);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(x + (fx + 1) * cellSize, y + (fy + 1) * cellSize, 5 * cellSize, 5 * cellSize);
-    ctx.fillStyle = '#07080B';
-    ctx.fillRect(x + (fx + 2) * cellSize, y + (fy + 2) * cellSize, 3 * cellSize, 3 * cellSize);
-  };
+  // Solid gold outer rim
+  ctx.fillStyle = '#F59E0B';
+  ctx.beginPath();
+  ctx.arc(0, 0, 62, 0, Math.PI * 2);
+  ctx.fill();
 
-  drawFinder(0, 0);
-  drawFinder(14, 0);
-  drawFinder(0, 14);
+  // Dark inner core
+  ctx.fillStyle = '#0F1118';
+  ctx.beginPath();
+  ctx.arc(0, 0, 54, 0, Math.PI * 2);
+  ctx.fill();
 
-  // Deterministic faux QR payload dots
-  for (let r = 0; r < 21; r++) {
-    for (let c = 0; c < 21; c++) {
-      if ((r < 8 && c < 8) || (r < 8 && c > 13) || (r > 13 && c < 8)) continue;
-      if ((r * 13 + c * 7 + (r ^ c)) % 3 === 0) {
-        ctx.fillRect(x + c * cellSize, y + r * cellSize, cellSize, cellSize);
-      }
-    }
-  }
+  // Badge icon
+  ctx.font = '54px sans-serif';
+  ctx.fillText(config.badgeIcon || '🥇', 0, 18);
   ctx.restore();
+
+  // 5. Badge Title
+  ctx.textAlign = 'center';
+  const goldGrad = ctx.createLinearGradient(size / 2 - 250, 0, size / 2 + 250, 0);
+  goldGrad.addColorStop(0, '#FDE68A');
+  goldGrad.addColorStop(0.5, '#F59E0B');
+  goldGrad.addColorStop(1, '#D97706');
+  ctx.fillStyle = goldGrad;
+  ctx.font = 'bold 30px -apple-system, sans-serif';
+  ctx.letterSpacing = '1px';
+  ctx.fillText(config.badgeTitle, size / 2, 310);
+
+  // Module Category pill
+  ctx.fillStyle = '#E5E7EB';
+  ctx.font = '600 14px -apple-system, sans-serif';
+  ctx.letterSpacing = '2px';
+  ctx.fillText(config.badgeModule.toUpperCase(), size / 2, 342);
+
+  // Description
+  ctx.fillStyle = '#9CA3AF';
+  ctx.font = '400 14px -apple-system, sans-serif';
+  ctx.letterSpacing = '0.5px';
+  ctx.fillText(config.badgeDesc, size / 2, 375);
+
+  // 6. Recipient Section
+  ctx.fillStyle = '#D1D5DB';
+  ctx.font = '300 14px -apple-system, sans-serif';
+  ctx.fillText('Accreditation Awarded To', size / 2, 430);
+
+  ctx.fillStyle = '#FFFFFF';
+  let nameFontSize = 36;
+  ctx.font = `bold ${nameFontSize}px Georgia, serif`;
+  const learnerName = config.learnerName || 'Kapil';
+  let nWidth = ctx.measureText(learnerName).width;
+  while (nWidth > 580 && nameFontSize > 20) {
+    nameFontSize -= 2;
+    ctx.font = `bold ${nameFontSize}px Georgia, serif`;
+    nWidth = ctx.measureText(learnerName).width;
+  }
+  ctx.fillText(learnerName, size / 2, 470);
+
+  // 7. QR Code and Verification Strip
+  const qrSize = 105;
+  const qrX = size / 2 - 190;
+  const qrY = 530;
+
+  const verifyUrl = getVerificationUrl(config.certificateId);
+  drawRealQrCode(ctx, verifyUrl, qrX, qrY, qrSize);
+
+  // Metadata beside QR
+  ctx.textAlign = 'left';
+  const metaX = qrX + qrSize + 22;
+
+  ctx.fillStyle = '#10B981';
+  ctx.font = 'bold 15px -apple-system, sans-serif';
+  ctx.fillText(`✓ ${config.score}% Assessment Score Verified`, metaX, qrY + 24);
+
+  ctx.fillStyle = '#E5E7EB';
+  ctx.font = '600 14px monospace';
+  ctx.fillText(`ID: ${config.certificateId}`, metaX, qrY + 48);
+
+  ctx.fillStyle = '#9CA3AF';
+  ctx.font = '400 13px -apple-system, sans-serif';
+  ctx.fillText(`Issued: ${config.issueDate}`, metaX, qrY + 70);
+
+  ctx.fillStyle = '#F59E0B';
+  ctx.font = '600 12px -apple-system, sans-serif';
+  ctx.fillText('Publicly Verified on Registry ↗', metaX, qrY + 92);
+
+  // 8. Footer Credit
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#6B7280';
+  ctx.font = '400 11px -apple-system, sans-serif';
+  ctx.fillText('SarlaYash Mission Presents • Powered by Kapil • 100% Verifiable PWA Credential', size / 2, 735);
 }
 
 // Download Canvas as high-resolution PNG
@@ -312,7 +506,16 @@ export function downloadCertificatePng(canvas: HTMLCanvasElement, filename: stri
   link.click();
 }
 
-// Open Print dialog / Save as PDF
+// Download Badge as high-resolution PNG
+export function downloadBadgePng(canvas: HTMLCanvasElement, filename: string): void {
+  const dataUrl = canvas.toDataURL('image/png', 1.0);
+  const link = document.createElement('a');
+  link.download = `${filename}.png`;
+  link.href = dataUrl;
+  link.click();
+}
+
+// Open Print dialog / Save Certificate as PDF with zero cropping
 export function printCertificatePdf(canvas: HTMLCanvasElement, title: string): void {
   const dataUrl = canvas.toDataURL('image/png', 1.0);
   const win = window.open('', '_blank');
@@ -322,17 +525,148 @@ export function printCertificatePdf(canvas: HTMLCanvasElement, title: string): v
   }
   win.document.write(`
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
       <head>
+        <meta charset="utf-8">
         <title>${title}</title>
         <style>
-          @page { size: landscape; margin: 0; }
-          body { margin: 0; background: #07080B; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-          img { width: 100vw; height: auto; max-height: 100vh; object-fit: contain; }
+          @page {
+            size: A4 landscape;
+            margin: 0;
+          }
+          * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #07080B !important;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+          }
+          .cert-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #07080B;
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          img {
+            max-width: 100vw;
+            max-height: 100vh;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            margin: auto;
+          }
         </style>
       </head>
       <body>
-        <img src="${dataUrl}" onload="window.print();" />
+        <div class="cert-container">
+          <img id="cert-img" src="${dataUrl}" alt="${title}" />
+        </div>
+        <script>
+          const img = document.getElementById('cert-img');
+          const triggerPrint = () => {
+            setTimeout(() => {
+              window.focus();
+              window.print();
+            }, 300);
+          };
+          if (img.complete) {
+            triggerPrint();
+          } else {
+            img.onload = triggerPrint;
+          }
+        </script>
+      </body>
+    </html>
+  `);
+  win.document.close();
+}
+
+// Open Print dialog / Save Badge as PDF with zero cropping
+export function printBadgePdf(canvas: HTMLCanvasElement, title: string): void {
+  const dataUrl = canvas.toDataURL('image/png', 1.0);
+  const win = window.open('', '_blank');
+  if (!win) {
+    alert('Please allow popups to download/print the badge.');
+    return;
+  }
+  win.document.write(`
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <title>${title}</title>
+        <style>
+          @page {
+            size: auto;
+            margin: 0;
+          }
+          * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #07080B !important;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+          .badge-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #07080B;
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          img {
+            max-width: 90vmin;
+            max-height: 90vmin;
+            object-fit: contain;
+            display: block;
+            margin: auto;
+            border-radius: 16px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="badge-container">
+          <img id="badge-img" src="${dataUrl}" alt="${title}" />
+        </div>
+        <script>
+          const img = document.getElementById('badge-img');
+          const triggerPrint = () => {
+            setTimeout(() => {
+              window.focus();
+              window.print();
+            }, 300);
+          };
+          if (img.complete) {
+            triggerPrint();
+          } else {
+            img.onload = triggerPrint;
+          }
+        </script>
       </body>
     </html>
   `);
