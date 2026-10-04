@@ -155,10 +155,32 @@ export interface UserProfile {
   certificateId?: string;
   certificateIssueDate?: string;
   moduleScores?: { [moduleId: number]: AssessmentScore };
+  masterAssessmentScore?: AssessmentScore;
+  grandChampionCertificateId?: string;
+  grandChampionIssueDate?: string;
+  grandChampionValidUntil?: string;
+  lorId?: string;
+  lorIssueDate?: string;
   acknowledgedBytes?: string[]; // Knowledge Byte IDs
+  acknowledgedBiIndex?: string[]; // BI Index IDs
   completedLabs?: string[]; // Industry Lab IDs
   completedCapstoneStages?: number[]; // Capstone stage numbers
   completedSections?: string[]; // Curriculum section IDs
+}
+
+export interface BusinessIntelligenceIndexItem {
+  id: string;
+  category: string;
+  title: string;
+  dimension: string;
+  excelScore: number; // 0-100
+  excelStrengths: string[];
+  excelLimitations: string[];
+  sheetsScore: number; // 0-100
+  sheetsStrengths: string[];
+  sheetsLimitations: string[];
+  enterpriseRecommendation: 'Microsoft Excel' | 'Google Sheets' | 'Hybrid Architecture';
+  kapilArchitecturalAnalysis: string;
 }
 
 export interface LeaderboardUser {

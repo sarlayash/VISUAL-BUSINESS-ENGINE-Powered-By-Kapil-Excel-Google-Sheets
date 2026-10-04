@@ -4,11 +4,12 @@ import QRCode from 'qrcode';
 
 export interface CertificateConfig {
   learnerName: string;
-  type: 'final' | 'module';
+  type: 'final' | 'module' | 'grand_champion';
   moduleTitle?: string;
   certificateId: string;
   issueDate: string;
   score: number;
+  validUntil?: string;
 }
 
 export interface BadgeConfig {
@@ -182,7 +183,17 @@ export function drawCertificateToCanvas(
   ctx.fillStyle = '#D1D5DB';
   ctx.font = '300 24px -apple-system, sans-serif';
   ctx.letterSpacing = '1px';
-  if (config.type === 'final') {
+  if (config.type === 'grand_champion') {
+    ctx.fillStyle = '#F59E0B';
+    ctx.font = 'bold 28px -apple-system, sans-serif';
+    ctx.letterSpacing = '3px';
+    ctx.fillText('GRAND CHAMPION EXECUTIVE ACCREDITATION', width / 2, 335);
+    ctx.fillStyle = '#D1D5DB';
+    ctx.font = '300 20px -apple-system, sans-serif';
+    ctx.letterSpacing = '1px';
+    ctx.fillText('HONORING EXTRAORDINARY ANALYTICAL SPEED & MASTERY', width / 2, 370);
+    ctx.fillText('Conferred Upon', width / 2, 410);
+  } else if (config.type === 'final') {
     ctx.fillText('THIS IS TO CERTIFY THAT', width / 2, 360);
   } else {
     ctx.fillText('MODULE CERTIFICATE OF COMPLETION', width / 2, 340);
@@ -195,7 +206,7 @@ export function drawCertificateToCanvas(
   }
 
   // 6. Recipient Learner Name with Auto-Scale (Prevents cropping of long names)
-  const nameY = config.type === 'final' ? 450 : 490;
+  const nameY = config.type === 'final' ? 450 : config.type === 'grand_champion' ? 475 : 490;
   ctx.fillStyle = '#FFFFFF';
 
   let nameFontSize = 58;
@@ -227,7 +238,25 @@ export function drawCertificateToCanvas(
   ctx.fillStyle = '#9CA3AF';
   ctx.font = '400 22px -apple-system, sans-serif';
   ctx.letterSpacing = '0.5px';
-  if (config.type === 'final') {
+  if (config.type === 'grand_champion') {
+    ctx.fillText(
+      'has triumphed over the 60-Minute Master Assessment (100 Business Scenario MCQs + 50 Live Exercises),',
+      width / 2,
+      descY
+    );
+    ctx.fillText(
+      'demonstrating peerless analytical speed, formula modeling, and full-stack Business Intelligence execution.',
+      width / 2,
+      descY + 34
+    );
+    ctx.fillStyle = '#F59E0B';
+    ctx.font = '700 21px -apple-system, sans-serif';
+    ctx.fillText(
+      `VALIDITY: 3 MONTHS (Valid Until ${config.validUntil || 'Quarterly Recertification'}) • Score: ${config.score}% Verified`,
+      width / 2,
+      descY + 76
+    );
+  } else if (config.type === 'final') {
     ctx.fillText(
       'has demonstrated exceptional mastery in real-world business simulations, data cleaning,',
       width / 2,
@@ -344,16 +373,28 @@ export function drawCertificateToCanvas(
   ctx.textAlign = 'left';
   ctx.fillStyle = '#E5E7EB';
   ctx.font = '600 16px -apple-system, sans-serif';
-  ctx.fillText(`ID: ${config.certificateId}`, qrX + qrSize + 16, qrY + 22);
+  ctx.fillText(`ID: ${config.certificateId}`, qrX + qrSize + 16, qrY + 18);
 
   ctx.fillStyle = '#9CA3AF';
-  ctx.font = '400 14px -apple-system, sans-serif';
-  ctx.fillText(`Issued: ${config.issueDate}`, qrX + qrSize + 16, qrY + 46);
-  ctx.fillText(`Score: ${config.score}% Verified`, qrX + qrSize + 16, qrY + 70);
+  ctx.font = '400 13px -apple-system, sans-serif';
+  ctx.fillText(`Issued: ${config.issueDate}`, qrX + qrSize + 16, qrY + 40);
 
-  ctx.fillStyle = '#F59E0B';
-  ctx.font = '600 13px -apple-system, sans-serif';
-  ctx.fillText('Scan QR to Verify ↗', qrX + qrSize + 16, qrY + 94);
+  if (config.type === 'grand_champion' && config.validUntil) {
+    ctx.fillStyle = '#F59E0B';
+    ctx.font = 'bold 13px -apple-system, sans-serif';
+    ctx.fillText(`Valid: 3 Mos (Until ${config.validUntil})`, qrX + qrSize + 16, qrY + 62);
+    ctx.fillStyle = '#9CA3AF';
+    ctx.font = '400 13px -apple-system, sans-serif';
+    ctx.fillText(`Score: ${config.score}% (Master)`, qrX + qrSize + 16, qrY + 82);
+    ctx.fillStyle = '#10B981';
+    ctx.font = 'bold 12px -apple-system, sans-serif';
+    ctx.fillText('Scan QR to Verify ↗', qrX + qrSize + 16, qrY + 102);
+  } else {
+    ctx.fillText(`Score: ${config.score}% Verified`, qrX + qrSize + 16, qrY + 64);
+    ctx.fillStyle = '#F59E0B';
+    ctx.font = '600 13px -apple-system, sans-serif';
+    ctx.fillText('Scan QR to Verify ↗', qrX + qrSize + 16, qrY + 88);
+  }
 }
 
 // Draw Standalone Badge Accreditation Card to Canvas (800 x 800)

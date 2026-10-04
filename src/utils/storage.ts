@@ -393,6 +393,117 @@ export function markAllModuleItemsComplete(moduleId: number, challengeIds: strin
   return updated;
 }
 
+export function toggleBiIndexAcknowledged(biId: string): UserProfile | null {
+  const current = loadUserProfile();
+  if (!current) return null;
+  const updated = { ...current };
+  const list = [...(updated.acknowledgedBiIndex || [])];
+  const idx = list.indexOf(biId);
+  if (idx !== -1) {
+    list.splice(idx, 1);
+  } else {
+    list.push(biId);
+    updated.xp += 50;
+  }
+  updated.acknowledgedBiIndex = list;
+  saveUserProfile(updated);
+  return updated;
+}
+
+export function acknowledgeAllBiIndexes(allBiIds: string[]): UserProfile | null {
+  const current = loadUserProfile();
+  if (!current) return null;
+  const updated = { ...current };
+  const existing = new Set(updated.acknowledgedBiIndex || []);
+  let newlyAdded = 0;
+  allBiIds.forEach((id) => {
+    if (!existing.has(id)) {
+      existing.add(id);
+      newlyAdded++;
+    }
+  });
+  updated.acknowledgedBiIndex = Array.from(existing);
+  updated.xp += newlyAdded * 50;
+  saveUserProfile(updated);
+  return updated;
+}
+
+export function saveMasterAssessmentResult(
+  score: number,
+  correctQuestions: number,
+  totalQuestions: number,
+  correctExercises: number,
+  totalExercises: number,
+  timeSpentSeconds: number
+): { profile: UserProfile; passed: boolean } | null {
+  const current = loadUserProfile();
+  if (!current) return null;
+
+  const passed = score >= 80;
+  const updated: UserProfile = { ...current };
+
+  const examScore = {
+    moduleId: 999, // Master Exam Identifier
+    score,
+    passed,
+    correctQuestions,
+    totalQuestions,
+    correctExercises,
+    totalExercises,
+    timeSpentSeconds,
+    completedAt: new Date().toISOString(),
+  };
+
+  updated.masterAssessmentScore = examScore;
+
+  if (passed) {
+    const badgeName = 'Grand Champion Executive';
+    if (!updated.earnedBadges.includes(badgeName)) {
+      updated.earnedBadges.push(badgeName);
+    }
+
+    if (!updated.grandChampionCertificateId) {
+      updated.grandChampionCertificateId = `SY-GC-2026-${Math.floor(100000 + Math.random() * 900000)}`;
+      updated.grandChampionIssueDate = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+      const validUntilDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+      updated.grandChampionValidUntil = validUntilDate.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    }
+
+    if (!updated.lorId) {
+      updated.lorId = `SY-LOR-2026-${Math.floor(100000 + Math.random() * 900000)}`;
+      updated.lorIssueDate = updated.grandChampionIssueDate;
+    }
+
+    updated.xp += 1000;
+  }
+
+  // Recalculate level
+  if (updated.xp >= 3500) {
+    updated.level = 'Visual Business Engineer';
+  } else if (updated.xp >= 2500) {
+    updated.level = 'Business Architect';
+  } else if (updated.xp >= 1800) {
+    updated.level = 'Strategist';
+  } else if (updated.xp >= 1000) {
+    updated.level = 'Analyst';
+  } else if (updated.xp >= 400) {
+    updated.level = 'Practitioner';
+  } else {
+    updated.level = 'Explorer';
+  }
+
+  saveUserProfile(updated);
+  return { profile: updated, passed };
+}
+
 // Create and load a fully accredited Demo User profile with all badges & certificates unlocked
 export function getDemoGraduateProfile(): UserProfile {
   return {
@@ -400,7 +511,7 @@ export function getDemoGraduateProfile(): UserProfile {
     name: 'Kapil (Demo Graduate)',
     email: 'kapil.graduate@sarlayash.org',
     avatar: 'https://ui-avatars.com/api/?name=Kapil+Graduate&background=F59E0B&color=07080B&bold=true',
-    xp: 4250,
+    xp: 5750,
     level: 'Visual Business Engineer',
     streakDays: 28,
     lastActiveDate: new Date().toISOString().split('T')[0],
@@ -419,11 +530,28 @@ export function getDemoGraduateProfile(): UserProfile {
       'Business Data Visualization Analyst',
       'Dashboard Architect',
       'Visual Business Engineer',
+      'Grand Champion Executive',
     ],
     capstoneCompleted: true,
     capstoneStage: 9,
     certificateId: 'SY-VBE-2026-000124',
     certificateIssueDate: 'October 4, 2026',
+    grandChampionCertificateId: 'SY-GC-2026-000124',
+    grandChampionIssueDate: 'October 4, 2026',
+    grandChampionValidUntil: 'January 4, 2027',
+    lorId: 'SY-LOR-2026-000124',
+    lorIssueDate: 'October 4, 2026',
+    masterAssessmentScore: {
+      moduleId: 999,
+      score: 96,
+      passed: true,
+      correctQuestions: 96,
+      totalQuestions: 100,
+      correctExercises: 48,
+      totalExercises: 50,
+      timeSpentSeconds: 2750,
+      completedAt: new Date().toISOString(),
+    },
     moduleScores: {
       1: {
         moduleId: 1,
@@ -490,6 +618,7 @@ export function getDemoGraduateProfile(): UserProfile {
       'sec_4_Pivot', 'sec_5_Boardroom'
     ],
     acknowledgedBytes: Array.from({ length: 50 }, (_, i) => `kb_${i + 1}`),
+    acknowledgedBiIndex: Array.from({ length: 10 }, (_, i) => `bii_${i + 1}`),
   };
 }
 

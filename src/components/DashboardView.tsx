@@ -114,9 +114,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       desc: '9-Stage Capstone & all 5 module exams passed ≥ 80%.',
       isGrand: true,
     },
+    {
+      id: 'bgc',
+      moduleId: 999,
+      title: 'Grand Champion Executive',
+      module: 'Master Exam (60m)',
+      icon: '👑',
+      desc: '100 MCQs + 50 Exercises passed ≥ 80%. Valid 3 Mos.',
+      isGrand: true,
+    },
   ];
 
+  const isMasterExamPassed = Boolean(
+    userProfile.masterAssessmentScore?.passed && (userProfile.masterAssessmentScore?.score || 0) >= 80
+  );
+
   const unlockedBadgesCount = dashboardBadges.filter((b) => {
+    if (b.id === 'bgc') return isMasterExamPassed;
     if (b.isGrand) return isGrandDiplomaUnlocked;
     return (userProfile.moduleScores?.[b.moduleId]?.score || 0) >= 80;
   }).length;
@@ -373,12 +387,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        {/* 6 Badges Showcase Grid */}
+        {/* 7 Badges Showcase Grid */}
         <div className="space-y-3 pt-2">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
               <Award className="w-4 h-4 text-amber-400" />
-              <span>6 Program Badges (Module Mastery)</span>
+              <span>7 Program Badges & Accreditations (Module Mastery)</span>
             </h3>
             <button
               onClick={() => {
@@ -392,12 +406,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
             {dashboardBadges.map((badge) => {
-              const modScore = badge.moduleId > 0 ? userProfile.moduleScores?.[badge.moduleId]?.score || 0 : 0;
-              const isEarned = badge.isGrand
-                ? isGrandDiplomaUnlocked
-                : modScore >= 80;
+              const modScore =
+                badge.moduleId === 999
+                  ? userProfile.masterAssessmentScore?.score || 0
+                  : badge.moduleId > 0
+                  ? userProfile.moduleScores?.[badge.moduleId]?.score || 0
+                  : 0;
+              const isEarned =
+                badge.id === 'bgc'
+                  ? isMasterExamPassed
+                  : badge.isGrand
+                  ? isGrandDiplomaUnlocked
+                  : modScore >= 80;
 
               return (
                 <div
@@ -408,7 +430,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   }}
                   className={`rounded-xl p-3.5 border transition cursor-pointer flex flex-col justify-between hover:scale-[1.02] ${
                     isEarned
-                      ? badge.isGrand
+                      ? badge.id === 'bgc'
+                        ? 'bg-gradient-to-br from-[#2a1a1c] to-[#141224] border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.3)] ring-1 ring-amber-400/50'
+                        : badge.isGrand
                         ? 'bg-gradient-to-br from-[#1d1928] to-[#121422] border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]'
                         : 'bg-[#0f121a] border-amber-500/40 shadow'
                       : 'bg-[#090a10] border-white/5 opacity-70 hover:opacity-90'
@@ -421,7 +445,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       </span>
                       {isEarned ? (
                         <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-0.5">
-                          <CheckCircle2 className="w-3 h-3" /> {badge.moduleId > 0 ? `${modScore}%` : 'Done'}
+                          <CheckCircle2 className="w-3 h-3" /> {modScore > 0 ? `${modScore}%` : 'Done'}
                         </span>
                       ) : (
                         <span className="text-[10px] text-rose-400 font-semibold flex items-center gap-0.5">

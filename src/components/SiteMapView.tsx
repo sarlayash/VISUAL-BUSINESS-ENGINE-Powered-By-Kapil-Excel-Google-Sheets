@@ -175,6 +175,14 @@ export const SiteMapView: React.FC<SiteMapViewProps> = ({
           badgeColor: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20',
           isInteractive: true,
         },
+        {
+          title: 'Business Intelligence Index (BII) in Excel & Sheets',
+          description: '10-dimensional architectural comparison across Scalability, Concurrency, Dynamic Arrays, Dashboards, Automation, ETL/Power Query, Security/Governance, Solver/Financial, AI/Copilot, Cost/TCO.',
+          tabId: 'bi-index',
+          badge: '10 Dimensions • BII',
+          badgeColor: 'bg-blue-500/10 text-blue-300 border-blue-500/20',
+          isInteractive: true,
+        },
       ],
     },
     {
@@ -182,6 +190,14 @@ export const SiteMapView: React.FC<SiteMapViewProps> = ({
       category: 'Accreditation, Mock Tests & Certificates',
       icon: Award,
       items: [
+        {
+          title: '60-Minute Master Assessment (100 MCQs + 50 Live Exercises)',
+          description: 'Comprehensive 150-point examination with dynamic anti-pattern question and option shuffling. Strict ≥ 80% passing benchmark.',
+          tabId: 'master-assessment',
+          badge: '150 Points • 60 Mins',
+          badgeColor: 'bg-amber-500/10 text-amber-300 border-amber-500/30',
+          isInteractive: true,
+        },
         {
           title: 'Timer-Based Module Mock Tests',
           description: 'Strict 25-minute examination per module with 10 scenario questions + 5 interactive exercises. Badges and certificates locked until ≥ 80%.',
@@ -191,10 +207,26 @@ export const SiteMapView: React.FC<SiteMapViewProps> = ({
           isInteractive: true,
         },
         {
-          title: 'Badges Portfolio (6 Accredited Badges)',
+          title: 'Grand Champion Certificate (Valid for 3 Months)',
+          description: 'Prestigious accreditation for master graduates with explicit 3-month quarterly validity, recertification schedule, and ISO QR verification.',
+          tabId: 'certificates',
+          badge: 'Valid for 3 Months',
+          badgeColor: 'bg-amber-500/10 text-amber-300 border-amber-500/30',
+          isInteractive: true,
+        },
+        {
+          title: "Kapil's Letter of Recommendation (LOR) in Professional PDF",
+          description: 'Institutional letter of recommendation on SarlaYash letterhead, verifying candidate mastery, percentile standing, cursive signature, and zero-crop A4 PDF export.',
+          tabId: 'lor',
+          badge: 'Institutional PDF LOR',
+          badgeColor: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20',
+          isInteractive: true,
+        },
+        {
+          title: 'Badges Portfolio (7 Accredited Badges)',
           description: 'Verifiable digital badges with unique IDs and scannable ISO QR codes, high-res 800x800 canvas preview, PNG export, and PDF print.',
           tabId: 'certificates',
-          badge: '6 QR-Verified Badges',
+          badge: '7 QR-Verified Badges',
           badgeColor: 'bg-amber-500/10 text-amber-300 border-amber-500/30',
           isInteractive: true,
         },

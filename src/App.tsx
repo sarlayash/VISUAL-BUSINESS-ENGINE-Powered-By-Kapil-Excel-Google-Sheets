@@ -12,6 +12,9 @@ import { LeaderboardView } from './components/LeaderboardView';
 import { AdminDashboard } from './components/AdminDashboard';
 import { InbuiltFunctionLab } from './components/InbuiltFunctionLab';
 import { AssessmentsView } from './components/AssessmentsView';
+import { MasterAssessmentView } from './components/MasterAssessmentView';
+import { BusinessIntelligenceIndexView } from './components/BusinessIntelligenceIndexView';
+import { LetterOfRecommendationView } from './components/LetterOfRecommendationView';
 import { PivotAndChartsSimulator } from './components/PivotAndChartsSimulator';
 import { MacroSimulator } from './components/MacroSimulator';
 import { KnowledgeBytesView } from './components/KnowledgeBytesView';
@@ -391,6 +394,35 @@ export function App() {
                   saveUserProfile(p);
                   setUserProfile(p);
                 }}
+              />
+            )}
+
+            {activeTab === 'bi-index' && (
+              <BusinessIntelligenceIndexView
+                userProfile={userProfile}
+                onUpdateProfile={(p) => {
+                  saveUserProfile(p);
+                  setUserProfile(p);
+                }}
+              />
+            )}
+
+            {activeTab === 'master-assessment' && (
+              <MasterAssessmentView
+                userProfile={userProfile}
+                onUpdateProfile={(p) => {
+                  saveUserProfile(p);
+                  setUserProfile(p);
+                }}
+                onNavigateTab={setActiveTab}
+                onTryInIde={handleTryInIde}
+              />
+            )}
+
+            {activeTab === 'lor' && (
+              <LetterOfRecommendationView
+                userProfile={userProfile}
+                onNavigateTab={setActiveTab}
               />
             )}
 

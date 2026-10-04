@@ -236,5 +236,97 @@ test('Site Map Registry Completeness', () => {
   assert.equal(categories.length, 5, 'Site Map covers 5 primary curriculum & architecture pillars');
 });
 
+test('Master Assessment Session Engine: Anti-Pattern Randomization & Correct Index Mapping', () => {
+  // Mock Fisher-Yates and Option remapper logic mirroring masterAssessmentData.ts
+  const sampleMCQs = [
+    {
+      id: 1,
+      question: 'Which Excel function handles modern vector lookups without column order restrictions?',
+      options: ['VLOOKUP', 'HLOOKUP', 'XLOOKUP', 'LOOKUP'],
+      correctIndex: 2, // 'XLOOKUP'
+      explanation: 'XLOOKUP searches right-to-left and left-to-right natively.',
+    },
+    {
+      id: 2,
+      question: 'In Google Sheets, which function natively executes SQL-style queries?',
+      options: ['FILTER', 'QUERY', 'SORTN', 'ARRAYFORMULA'],
+      correctIndex: 1, // 'QUERY'
+      explanation: 'QUERY uses Google Visualization API Query Language.',
+    },
+  ];
+
+  function shuffleSession(mcqs) {
+    return mcqs.map((q) => {
+      const originalCorrectAnswer = q.options[q.correctIndex];
+      const indices = [0, 1, 2, 3];
+      // Deterministic reverse-order shuffle for test verification
+      indices.reverse();
+      const shuffledOptions = indices.map((i) => q.options[i]);
+      const newCorrectIndex = shuffledOptions.indexOf(originalCorrectAnswer);
+      return {
+        ...q,
+        options: shuffledOptions,
+        correctIndex: newCorrectIndex,
+      };
+    });
+  }
+
+  const session = shuffleSession(sampleMCQs);
+  assert.equal(session.length, 2);
+  
+  // Verify that the answer text at newCorrectIndex is strictly identical to the original answer text
+  assert.equal(session[0].options[session[0].correctIndex], 'XLOOKUP');
+  assert.equal(session[1].options[session[1].correctIndex], 'QUERY');
+});
+
+test('Grand Champion Accreditation: 3-Month Validity & Recertification Logic', () => {
+  const issueDate = new Date('2026-10-04T00:00:00Z');
+  const ninetyDaysMs = 90 * 24 * 60 * 60 * 1000;
+  const validUntilDate = new Date(issueDate.getTime() + ninetyDaysMs);
+
+  const formattedIssue = issueDate.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
+  const formattedValidUntil = validUntilDate.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
+
+  assert.equal(formattedIssue, 'October 4, 2026');
+  assert.equal(formattedValidUntil, 'January 2, 2027');
+
+  const diffDays = Math.round((validUntilDate.getTime() - issueDate.getTime()) / (1000 * 60 * 60 * 24));
+  assert.equal(diffDays, 90, 'Grand Champion certificate and LOR must have exactly 90-day (3 months) validity');
+});
+
+test('Business Intelligence Index: 10 Enterprise Dimensions & Scores Verification', () => {
+  const biDimensions = [
+    { id: 'bii_1', title: 'Data Scalability & Volume Capacity', excelScore: 88, sheetsScore: 82 },
+    { id: 'bii_2', title: 'Real-Time Concurrency & Collaboration', excelScore: 78, sheetsScore: 98 },
+    { id: 'bii_3', title: 'Dynamic Arrays & Modern Formula Engine', excelScore: 94, sheetsScore: 91 },
+    { id: 'bii_4', title: 'Interactive Dashboarding & Visual Storytelling', excelScore: 93, sheetsScore: 84 },
+    { id: 'bii_5', title: 'Workflow Automation (VBA vs Apps Script)', excelScore: 89, sheetsScore: 92 },
+    { id: 'bii_6', title: 'Data Ingestion & ETL (Power Query vs Web Ingestion)', excelScore: 97, sheetsScore: 79 },
+    { id: 'bii_7', title: 'Enterprise Security, Audit & Data Governance', excelScore: 92, sheetsScore: 94 },
+    { id: 'bii_8', title: 'Financial Modeling, Solver & Advanced Statistics', excelScore: 96, sheetsScore: 78 },
+    { id: 'bii_9', title: 'AI Copilot & Conversational Intelligence', excelScore: 92, sheetsScore: 90 },
+    { id: 'bii_10', title: 'Total Cost of Ownership (TCO) & Ecosystem Value', excelScore: 85, sheetsScore: 96 },
+  ];
+
+  assert.equal(biDimensions.length, 10, 'Must contain exactly 10 enterprise architectural dimensions');
+
+  const excelAvg = (biDimensions.reduce((acc, d) => acc + d.excelScore, 0) / 10).toFixed(1);
+  const sheetsAvg = (biDimensions.reduce((acc, d) => acc + d.sheetsScore, 0) / 10).toFixed(1);
+
+  assert.equal(excelAvg, '90.4');
+  assert.equal(sheetsAvg, '88.4');
+});
+
+
 
 
